@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     tenant_daily_token_cap: int = 250_000
 
     postmark_server_token: str = ""
+    postmark_inbound_secret: str = ""
     mail_from: str = "briefing@pulsebuild.local"
     file_encryption_key: str = ""
     local_upload_dir: str = "./data/uploads"

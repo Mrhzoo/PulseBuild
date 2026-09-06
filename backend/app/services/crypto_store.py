@@ -8,7 +8,6 @@ from cryptography.fernet import Fernet, InvalidToken
 
 from app.config import settings
 
-# Valid Fernet key for local development only. Override FILE_ENCRYPTION_KEY everywhere else.
 _DEV_KEY = b"QqCH7loflz6-QPlfteLXJTPEs2NPDTvZrxGt7rzVFio="
 
 
@@ -41,3 +40,8 @@ def write_encrypted(storage_key: str, data: bytes) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(encrypt_bytes(data))
     return path
+
+
+def read_encrypted(storage_key: str) -> bytes:
+    path = Path(settings.local_upload_dir) / storage_key
+    return path.read_bytes()
