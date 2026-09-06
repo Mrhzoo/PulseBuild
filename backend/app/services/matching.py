@@ -56,8 +56,10 @@ async def match_inbound(
         name = filename.lower()
         for p in projects:
             aliases = [str(a).lower() for a in (p.match_aliases or [])]
-            hay = [p.code.lower(), p.slug.lower(), p.name.lower(), *aliases]
-            if any(h and h in name for h in hay):
+            tokens = [p.code.lower(), p.slug.lower(), *aliases]
+            tokens = [t for t in tokens if t]
+            if any(t in name for t in tokens):
                 return MatchResult(p.id, "filename_alias")
 
+    # Soft keyword / party suggest never auto-commits.
     return MatchResult(None, "unassigned")
