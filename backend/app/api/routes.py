@@ -30,6 +30,7 @@ from app.security import hash_password
 from app.services.audit import write_audit
 from app.services.crypto_store import write_encrypted
 from app.services.matching import match_inbound
+from app.services.tenancy import require_project_for_tenant
 
 router = APIRouter()
 
@@ -111,7 +112,14 @@ async def upload_document(
         subject=subject,
         filename=file.filename,
     )
-    assigned = UUID(project_id) if project_id else match.project_id
+    assigned = None
+    if project_id:
+        project = await require_project_for_tenant(
+            session, principal.tenant_id, UUID(project_id)
+        )
+        assigned = project.id
+    else:
+        assigned = match.project_id
     storage_key = f"{principal.tenant_id}/{digest}/{file.filename}"
     write_encrypted(storage_key, raw)
 
@@ -159,6 +167,8 @@ async def reassign_document(
         raise HTTPException(404, "document")
     before = str(doc.project_id)
     new_id = UUID(payload["project_id"]) if payload.get("project_id") else None
+    if new_id is not None:
+        await require_project_for_tenant(session, principal.tenant_id, new_id)
     doc.project_id = new_id
     await write_audit(
         session,
