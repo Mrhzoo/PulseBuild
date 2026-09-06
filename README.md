@@ -6,7 +6,7 @@ PulseBuild sits between messy project communication (email, PDFs, schedules, cha
 
 **The product is the daily digest.** Email is the SLA channel.
 
-Spec: `docs/` (architecture, stack, thesis, journey — v1.1).
+Spec: `docs/` (architecture, stack, thesis, journey — v1.1). Ingest: `docs/S1-ingest.md`.
 
 ## Locked v1 decisions
 
@@ -22,8 +22,8 @@ Spec: `docs/` (architecture, stack, thesis, journey — v1.1).
 ```
 backend/     FastAPI + SQLAlchemy + LangGraph contracts
 frontend/    Next.js App Router (digest-first UI)
-docs/        founding briefs v1.1
-fixtures/    golden eval set
+docs/        founding briefs v1.1 + S1 ingest
+fixtures/    golden eval set + ingest samples
 ```
 
 ## Local run
@@ -38,7 +38,7 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 ```bash
-cd frontend && npm install && npm run dev
+cd backend && pytest tests/test_ingest.py tests/test_matching_and_graph.py tests/test_tenancy.py
 ```
 
 ## Trust rules (non-negotiable)
@@ -51,4 +51,6 @@ cd frontend && npm install && npm run dev
 
 ## Status
 
-S0–S3 scaffold on `main`. Ingest parsers, live LLM wiring, and email delivery land next.
+- **S0** foundation on `main` (auth, tenancy, encrypted upload, Reader, audit) — re-smoke PASS.
+- **S1** ingest on `main` (PDF/Excel/email/WhatsApp parsers → Event store, reingest, inbound stub).
+- **S2** agents next (still heuristic graph only; no live LLM until confirmed).
