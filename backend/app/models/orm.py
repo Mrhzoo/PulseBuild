@@ -110,11 +110,12 @@ class Membership(Base):
     role: Mapped[Role] = mapped_column(pg_str_enum(Role), default=Role.OPS)
 
     tenant: Mapped[Tenant] = relationship(back_populates="memberships")
-    user: Mapped[User] = relationship(back_populates="memberships")
+    user: Mapped[User] = relationship(back_populates="user")
 
 
 class Project(Base):
     __tablename__ = "projects"
+    __table_args__ = (UniqueConstraint("tenant_id", "code", name="uq_projects_tenant_code"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
