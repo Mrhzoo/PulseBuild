@@ -4,17 +4,24 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 
 from app.config import settings
 
-_DEV_KEY = b"cHVsc2VidWlsZC1kZXYtZmlsZS1rZXktMzIhbm90LXByb2Q="
+# Valid Fernet key for local development only. Override FILE_ENCRYPTION_KEY everywhere else.
+_DEV_KEY = b"QqCH7loflz6-QPlfteLXJTPEs2NPDTvZrxGt7rzVFio="
 
 
 def _fernet() -> Fernet:
-    raw = (settings.file_encryption_key or "").encode()
-    if len(raw) >= 43:
-        return Fernet(raw)
+    raw = (settings.file_encryption_key or "").strip().encode()
+    if raw:
+        try:
+            return Fernet(raw)
+        except (ValueError, TypeError) as exc:
+            if settings.app_env != "development":
+                raise RuntimeError("FILE_ENCRYPTION_KEY is not a valid Fernet key") from exc
+    if settings.app_env != "development":
+        raise RuntimeError("FILE_ENCRYPTION_KEY is required outside development")
     return Fernet(_DEV_KEY)
 
 
@@ -23,7 +30,10 @@ def encrypt_bytes(data: bytes) -> bytes:
 
 
 def decrypt_bytes(blob: bytes) -> bytes:
-    return _fernet().decrypt(blob)
+    try:
+        return _fernet().decrypt(blob)
+    except InvalidToken as exc:
+        raise RuntimeError("cannot decrypt blob with current FILE_ENCRYPTION_KEY") from exc
 
 
 def write_encrypted(storage_key: str, data: bytes) -> Path:
