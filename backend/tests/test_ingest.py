@@ -15,19 +15,33 @@ from app.services.matching import match_inbound
 from app.services.tenancy import require_project_for_tenant
 
 ROOT = Path(__file__).resolve().parents[2] / "fixtures" / "ingest"
+IPC_TEXT = "IPC certified. Retention 10 percent held until handover."
 
-TEXT_PDF = b"""%PDF-1.4
-1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj
-2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj
-3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>endobj
-4 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>endobj
-5 0 obj<< /Length 78 >>stream
-BT /F1 12 Tf 72 720 Td (IPC certified. Retention 10 percent held until handover.) Tj ET
-endstream
-endobj
-trailer<< /Size 6 /Root 1 0 R >>
-%%EOF
-"""
+
+def build_text_pdf(text: str = IPC_TEXT) -> bytes:
+    """Valid xref + Helvetica text layer so pypdf.extract_text() works."""
+    safe = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+    stream = f"BT /F1 12 Tf 72 720 Td ({safe}) Tj ET\n".encode("latin-1")
+    bodies = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        b"<< /Length %d >>stream\n" % len(stream) + stream + b"endstream",
+    ]
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = [0]
+    for i, body in enumerate(bodies, start=1):
+        offsets.append(len(out))
+        out += f"{i} 0 obj\n".encode() + body + b"\nendobj\n"
+    xref_pos = len(out)
+    out += f"xref\n0 {len(bodies)+1}\n".encode()
+    out += b"0000000000 65535 f \n"
+    for off in offsets[1:]:
+        out += f"{off:010d} 00000 n \n".encode()
+    out += f"trailer<< /Size {len(bodies)+1} /Root 1 0 R >>\nstartxref\n{xref_pos}\n%%EOF\n".encode()
+    return bytes(out)
+
 
 CHAT_SAMPLE = b"""12/03/2026, 09:14 - Ahmed: Site delay confirmed for Marina tower
 12/03/2026, 09:15 - Ahmed: <Media omitted>
@@ -66,11 +80,10 @@ def _blank_pdf() -> bytes:
 
 
 def test_pdf_text_layer_emits_pointer():
-    data = (ROOT / "ipc-text.pdf").read_bytes() if (ROOT / "ipc-text.pdf").exists() else TEXT_PDF
-    result = parse_pdf(data, "doc-pdf")
+    result = parse_pdf(build_text_pdf(), "doc-pdf")
     assert result.parse_status == "extracted"
     assert result.events
-    assert all(e.pointer.startswith("doc-pdf#") for e in result.events)
+    assert any(e.pointer == "doc-pdf#p1" for e in result.events)
     assert "Retention" in result.extracted_text
 
 
