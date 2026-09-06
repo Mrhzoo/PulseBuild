@@ -110,7 +110,7 @@ class Membership(Base):
     role: Mapped[Role] = mapped_column(pg_str_enum(Role), default=Role.OPS)
 
     tenant: Mapped[Tenant] = relationship(back_populates="memberships")
-    user: Mapped[User] = relationship(back_populates="user")
+    user: Mapped[User] = relationship(back_populates="memberships")
 
 
 class Project(Base):
