@@ -27,6 +27,15 @@ def uid() -> uuid.UUID:
     return uuid.uuid4()
 
 
+def pg_str_enum(enum_cls: type[enum.Enum]) -> Enum:
+    """Store enum values as VARCHAR so Alembic VARCHAR columns match the ORM."""
+    return Enum(
+        enum_cls,
+        native_enum=False,
+        values_callable=lambda members: [item.value for item in members],
+    )
+
+
 class Country(str, enum.Enum):
     UAE = "UAE"
     KSA = "KSA"
@@ -68,8 +77,8 @@ class Tenant(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     name: Mapped[str] = mapped_column(String(200))
     slug: Mapped[str] = mapped_column(String(80), unique=True)
-    country: Mapped[Country] = mapped_column(Enum(Country), default=Country.UAE)
-    currency: Mapped[Currency] = mapped_column(Enum(Currency), default=Currency.AED)
+    country: Mapped[Country] = mapped_column(pg_str_enum(Country), default=Country.UAE)
+    currency: Mapped[Currency] = mapped_column(pg_str_enum(Currency), default=Currency.AED)
     billing_plan: Mapped[str] = mapped_column(String(40), default="pilot")
     data_residency: Mapped[str] = mapped_column(String(40), default="default")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -98,7 +107,7 @@ class Membership(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"))
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
-    role: Mapped[Role] = mapped_column(Enum(Role), default=Role.OPS)
+    role: Mapped[Role] = mapped_column(pg_str_enum(Role), default=Role.OPS)
 
     tenant: Mapped[Tenant] = relationship(back_populates="memberships")
     user: Mapped[User] = relationship(back_populates="memberships")
@@ -113,8 +122,10 @@ class Project(Base):
     code: Mapped[str] = mapped_column(String(40))
     slug: Mapped[str] = mapped_column(String(80))
     owner_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    tenant_role: Mapped[TenantRoleOnProject] = mapped_column(Enum(TenantRoleOnProject), default=TenantRoleOnProject.SUB)
-    currency: Mapped[Currency] = mapped_column(Enum(Currency), default=Currency.AED)
+    tenant_role: Mapped[TenantRoleOnProject] = mapped_column(
+        pg_str_enum(TenantRoleOnProject), default=TenantRoleOnProject.SUB
+    )
+    currency: Mapped[Currency] = mapped_column(pg_str_enum(Currency), default=Currency.AED)
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     match_aliases: Mapped[list] = mapped_column(JSONB, default=list)
@@ -170,8 +181,8 @@ class Finding(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
     project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"), index=True)
-    agent: Mapped[AgentName] = mapped_column(Enum(AgentName))
-    severity: Mapped[Severity] = mapped_column(Enum(Severity), default=Severity.WATCH)
+    agent: Mapped[AgentName] = mapped_column(pg_str_enum(AgentName))
+    severity: Mapped[Severity] = mapped_column(pg_str_enum(Severity), default=Severity.WATCH)
     title: Mapped[str] = mapped_column(String(240))
     why_it_hits_us: Mapped[str] = mapped_column(Text)
     evidence_snippet: Mapped[str] = mapped_column(Text)
