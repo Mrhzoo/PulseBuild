@@ -13,9 +13,11 @@ from app.agents.graph import run_v1_graph
 from app.api.deps import Principal, get_principal, require_write
 from app.db import get_session
 from app.eval.harness import run_golden
+from app.ingest.pipeline import ingest_document, sniff_parser
 from app.models.orm import (
     AgentName,
     Document,
+    Event,
     Finding,
     Flag,
     Membership,
@@ -50,19 +52,8 @@ async def list_projects(
     principal: Principal = Depends(get_principal),
     session: AsyncSession = Depends(get_session),
 ) -> list[dict]:
-    rows = (
-        await session.execute(select(Project).where(Project.tenant_id == principal.tenant_id))
-    ).scalars().all()
-    return [
-        {
-            "id": str(p.id),
-            "name": p.name,
-            "code": p.code,
-            "slug": p.slug,
-            "forward_address": p.forward_address,
-        }
-        for p in rows
-    ]
+    rows = (await session.execute(select(Project).where(Project.tenant_id == principal.tenant_id))).scalars().all()
+    return [{"id": str(p.id), "name": p.name, "code": p.code, "slug": p.slug, "forward_address": p.forward_address} for p in rows]
 
 
 @router.post("/projects")
@@ -105,43 +96,38 @@ async def upload_document(
         text = raw.decode("utf-8", errors="ignore")[:20_000]
     except Exception:
         text = ""
-
-    match = await match_inbound(
-        session,
-        principal.tenant_id,
-        subject=subject,
-        filename=file.filename,
-    )
+    match = await match_inbound(session, principal.tenant_id, subject=subject, filename=file.filename)
     assigned = None
     if project_id:
-        project = await require_project_for_tenant(
-            session, principal.tenant_id, UUID(project_id)
-        )
+        project = await require_project_for_tenant(session, principal.tenant_id, UUID(project_id))
         assigned = project.id
     else:
         assigned = match.project_id
     storage_key = f"{principal.tenant_id}/{digest}/{file.filename}"
     write_encrypted(storage_key, raw)
-
+    kind = sniff_parser(file.filename or "", "upload")
+    source_type = {"pdf": "pdf", "excel": "excel", "email": "email", "whatsapp": "whatsapp"}.get(kind, "upload")
     doc = Document(
         tenant_id=principal.tenant_id,
         project_id=assigned,
-        source_type="upload",
+        source_type=source_type,
         filename=file.filename or "untitled",
         content_hash=digest,
         storage_key=storage_key,
         extracted_text=text,
         language="mixed",
-        parse_status="extracted" if text.strip() else "needs_better_file",
+        parse_status="pending",
     )
     session.add(doc)
+    await session.flush()
+    events = await ingest_document(session, principal.tenant_id, doc.id)
     await write_audit(
         session,
         tenant_id=principal.tenant_id,
         actor=str(principal.user_id),
         action="document.upload",
         entity_type="document",
-        entity_id="pending",
+        entity_id=str(doc.id),
         after={"filename": file.filename, "project_id": str(assigned) if assigned else None},
     )
     await session.commit()
@@ -151,6 +137,7 @@ async def upload_document(
         "project_id": str(doc.project_id) if doc.project_id else None,
         "unassigned": doc.project_id is None,
         "parse_status": doc.parse_status,
+        "event_count": len(events),
         "match_method": match.method,
     }
 
@@ -184,6 +171,63 @@ async def reassign_document(
     return {"ok": True, "project_id": str(new_id) if new_id else None}
 
 
+@router.post("/documents/{document_id}/reingest")
+async def reingest_document(
+    document_id: UUID,
+    principal: Principal = Depends(require_write),
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    doc = await session.get(Document, document_id)
+    if not doc or doc.tenant_id != principal.tenant_id:
+        raise HTTPException(404, "document")
+    events = await ingest_document(session, principal.tenant_id, doc.id)
+    await write_audit(
+        session,
+        tenant_id=principal.tenant_id,
+        actor=str(principal.user_id),
+        action="document.reingest",
+        entity_type="document",
+        entity_id=str(doc.id),
+        after={"parse_status": doc.parse_status, "event_count": len(events)},
+    )
+    await session.commit()
+    return {
+        "id": str(doc.id),
+        "parse_status": doc.parse_status,
+        "event_count": len(events),
+        "project_id": str(doc.project_id) if doc.project_id else None,
+    }
+
+
+@router.get("/projects/{project_id}/events")
+async def list_project_events(
+    project_id: UUID,
+    principal: Principal = Depends(get_principal),
+    session: AsyncSession = Depends(get_session),
+) -> list[dict]:
+    project = await session.get(Project, project_id)
+    if not project or project.tenant_id != principal.tenant_id:
+        raise HTTPException(404, "project")
+    rows = (
+        await session.execute(
+            select(Event)
+            .where(Event.tenant_id == principal.tenant_id, Event.project_id == project_id)
+            .order_by(Event.created_at.desc())
+        )
+    ).scalars().all()
+    return [
+        {
+            "id": str(e.id),
+            "type": e.type,
+            "project_id": str(e.project_id) if e.project_id else None,
+            "document_id": str(e.document_id) if e.document_id else None,
+            "payload": e.payload,
+            "confidence": e.confidence,
+        }
+        for e in rows
+    ]
+
+
 @router.post("/projects/{project_id}/run")
 async def run_agents(
     project_id: UUID,
@@ -195,10 +239,7 @@ async def run_agents(
         raise HTTPException(404, "project")
     docs = (
         await session.execute(
-            select(Document).where(
-                Document.tenant_id == principal.tenant_id,
-                Document.project_id == project_id,
-            )
+            select(Document).where(Document.tenant_id == principal.tenant_id, Document.project_id == project_id)
         )
     ).scalars().all()
     snapshot = ProjectSnapshot(
@@ -206,11 +247,7 @@ async def run_agents(
         project_name=project.name,
         tenant_role=project.tenant_role.value,
         currency=project.currency.value,
-        document_excerpts=[
-            {"pointer": f"{d.id}#extract", "text": d.extracted_text}
-            for d in docs
-            if d.extracted_text
-        ],
+        document_excerpts=[{"pointer": f"{d.id}#extract", "text": d.extracted_text} for d in docs if d.extracted_text],
     )
     result = run_v1_graph(snapshot)
     created = []
@@ -243,24 +280,16 @@ async def digest_today(
     findings = (
         await session.execute(
             select(Finding)
-            .where(
-                Finding.tenant_id == principal.tenant_id,
-                Finding.dismissed.is_(False),
-            )
+            .where(Finding.tenant_id == principal.tenant_id, Finding.dismissed.is_(False))
             .order_by(Finding.created_at.desc())
         )
     ).scalars().all()
     unassigned = (
         await session.execute(
-            select(func.count(Document.id)).where(
-                Document.tenant_id == principal.tenant_id,
-                Document.project_id.is_(None),
-            )
+            select(func.count(Document.id)).where(Document.tenant_id == principal.tenant_id, Document.project_id.is_(None))
         )
     ).scalar_one()
-    projects = (
-        await session.execute(select(Project).where(Project.tenant_id == principal.tenant_id))
-    ).scalars().all()
+    projects = (await session.execute(select(Project).where(Project.tenant_id == principal.tenant_id))).scalars().all()
     by_project = {p.id: p.name for p in projects}
 
     def pack(f: Finding) -> dict:
@@ -311,19 +340,12 @@ async def invite_reader(
     temp_password = None
     if not user:
         temp_password = secrets.token_urlsafe(10)
-        user = User(
-            email=email,
-            full_name=payload.get("full_name") or email,
-            hashed_password=hash_password(temp_password),
-        )
+        user = User(email=email, full_name=payload.get("full_name") or email, hashed_password=hash_password(temp_password))
         session.add(user)
         await session.flush()
     existing = (
         await session.execute(
-            select(Membership).where(
-                Membership.tenant_id == principal.tenant_id,
-                Membership.user_id == user.id,
-            )
+            select(Membership).where(Membership.tenant_id == principal.tenant_id, Membership.user_id == user.id)
         )
     ).scalar_one_or_none()
     if existing:
@@ -355,15 +377,10 @@ async def list_people(
 ) -> list[dict]:
     rows = (
         await session.execute(
-            select(Membership, User)
-            .join(User, User.id == Membership.user_id)
-            .where(Membership.tenant_id == principal.tenant_id)
+            select(Membership, User).join(User, User.id == Membership.user_id).where(Membership.tenant_id == principal.tenant_id)
         )
     ).all()
-    return [
-        {"user_id": str(u.id), "email": u.email, "name": u.full_name, "role": m.role.value}
-        for m, u in rows
-    ]
+    return [{"user_id": str(u.id), "email": u.email, "name": u.full_name, "role": m.role.value} for m, u in rows]
 
 
 @router.post("/findings/{finding_id}/flag")
