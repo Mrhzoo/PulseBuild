@@ -28,9 +28,11 @@ class AgentFinding(BaseModel):
 
     @model_validator(mode="after")
     def numbers_need_evidence(self) -> "AgentFinding":
-        if self.amount is not None and not self.evidence.pointer:
+        if self.proposed_severity == "act" and not self.evidence.pointer.strip():
+            raise ValueError("Act findings require evidence.pointer")
+        if self.amount is not None and not self.evidence.pointer.strip():
             raise ValueError("amount requires evidence.pointer")
-        if self.related_date is not None and not self.evidence.pointer:
+        if self.related_date is not None and not self.evidence.pointer.strip():
             raise ValueError("date requires evidence.pointer")
         return self
 

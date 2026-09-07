@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     llm_reasoning_model: str = "gpt-4.1"
     openai_api_key: str = ""
     anthropic_api_key: str = ""
+    enable_live_llm: bool = False
     tenant_daily_token_cap: int = 250_000
 
     postmark_server_token: str = ""

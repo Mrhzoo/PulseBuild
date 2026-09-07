@@ -6,7 +6,7 @@ PulseBuild sits between messy project communication (email, PDFs, schedules, cha
 
 **The product is the daily digest.** Email is the SLA channel.
 
-Spec: `docs/` (architecture, stack, thesis, journey — v1.1). Ingest: `docs/S1-ingest.md`.
+Spec: `docs/` (architecture, stack, thesis, journey — v1.1). Ingest: `docs/S1-ingest.md`. Agents: `docs/S2-agents.md`.
 
 ## Locked v1 decisions
 
@@ -17,15 +17,6 @@ Spec: `docs/` (architecture, stack, thesis, journey — v1.1). Ingest: `docs/S1-
 - UAE + AED first.
 - Assisted-ops in weeks 1–4 only, capped and audited.
 
-## Repo layout
-
-```
-backend/     FastAPI + SQLAlchemy + LangGraph contracts
-frontend/    Next.js App Router (digest-first UI)
-docs/        founding briefs v1.1 + S1 ingest
-fixtures/    golden eval set + ingest samples
-```
-
 ## Local run
 
 ```bash
@@ -35,22 +26,12 @@ cd backend && python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 alembic upgrade head
 uvicorn app.main:app --reload --port 8000
+cd backend && pytest
 ```
-
-```bash
-cd backend && pytest tests/test_ingest.py tests/test_matching_and_graph.py tests/test_tenancy.py
-```
-
-## Trust rules (non-negotiable)
-
-1. Never invent amounts or dates.
-2. Cards without `evidence_pointer` cannot enter **Act**.
-3. Do not generate fake risks when a project has no files.
-4. Do not train public models on customer documents.
-5. Every assisted-ops edit is logged.
 
 ## Status
 
-- **S0** foundation on `main` (auth, tenancy, encrypted upload, Reader, audit) — re-smoke PASS.
-- **S1** ingest on `main` (PDF/Excel/email/WhatsApp parsers → Event store, reingest, inbound stub).
-- **S2** agents next (still heuristic graph only; no live LLM until confirmed).
+- **S0** foundation — re-smoke PASS.
+- **S1** ingest — closed.
+- **S2** agents v0 on `main` (heuristics default; no live LLM).
+- **S3** digest email next.
