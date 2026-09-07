@@ -10,6 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.graph import run_v1_graph
+from app.agents.snapshot import build_snapshot
 from app.api.deps import Principal, get_principal, require_write
 from app.db import get_session
 from app.eval.harness import run_golden
@@ -27,7 +28,6 @@ from app.models.orm import (
     Tenant,
     User,
 )
-from app.schemas.agents import ProjectSnapshot
 from app.security import hash_password
 from app.services.audit import write_audit
 from app.services.crypto_store import write_encrypted
@@ -48,20 +48,13 @@ async def golden() -> dict:
 
 
 @router.get("/projects")
-async def list_projects(
-    principal: Principal = Depends(get_principal),
-    session: AsyncSession = Depends(get_session),
-) -> list[dict]:
+async def list_projects(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> list[dict]:
     rows = (await session.execute(select(Project).where(Project.tenant_id == principal.tenant_id))).scalars().all()
     return [{"id": str(p.id), "name": p.name, "code": p.code, "slug": p.slug, "forward_address": p.forward_address} for p in rows]
 
 
 @router.post("/projects")
-async def create_project(
-    payload: dict,
-    principal: Principal = Depends(require_write),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
+async def create_project(payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
     tenant = await session.get(Tenant, principal.tenant_id)
     if not tenant:
         raise HTTPException(404, "tenant")
@@ -121,34 +114,14 @@ async def upload_document(
     session.add(doc)
     await session.flush()
     events = await ingest_document(session, principal.tenant_id, doc.id)
-    await write_audit(
-        session,
-        tenant_id=principal.tenant_id,
-        actor=str(principal.user_id),
-        action="document.upload",
-        entity_type="document",
-        entity_id=str(doc.id),
-        after={"filename": file.filename, "project_id": str(assigned) if assigned else None},
-    )
+    await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="document.upload", entity_type="document", entity_id=str(doc.id), after={"filename": file.filename, "project_id": str(assigned) if assigned else None})
     await session.commit()
     await session.refresh(doc)
-    return {
-        "id": str(doc.id),
-        "project_id": str(doc.project_id) if doc.project_id else None,
-        "unassigned": doc.project_id is None,
-        "parse_status": doc.parse_status,
-        "event_count": len(events),
-        "match_method": match.method,
-    }
+    return {"id": str(doc.id), "project_id": str(doc.project_id) if doc.project_id else None, "unassigned": doc.project_id is None, "parse_status": doc.parse_status, "event_count": len(events), "match_method": match.method}
 
 
 @router.post("/documents/{document_id}/reassign")
-async def reassign_document(
-    document_id: UUID,
-    payload: dict,
-    principal: Principal = Depends(require_write),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
+async def reassign_document(document_id: UUID, payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
     doc = await session.get(Document, document_id)
     if not doc or doc.tenant_id != principal.tenant_id:
         raise HTTPException(404, "document")
@@ -157,105 +130,51 @@ async def reassign_document(
     if new_id is not None:
         await require_project_for_tenant(session, principal.tenant_id, new_id)
     doc.project_id = new_id
-    await write_audit(
-        session,
-        tenant_id=principal.tenant_id,
-        actor=str(principal.user_id),
-        action="document.reassign",
-        entity_type="document",
-        entity_id=str(doc.id),
-        before={"project_id": before},
-        after={"project_id": str(new_id) if new_id else None},
-    )
+    await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="document.reassign", entity_type="document", entity_id=str(doc.id), before={"project_id": before}, after={"project_id": str(new_id) if new_id else None})
     await session.commit()
     return {"ok": True, "project_id": str(new_id) if new_id else None}
 
 
 @router.post("/documents/{document_id}/reingest")
-async def reingest_document(
-    document_id: UUID,
-    principal: Principal = Depends(require_write),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
+async def reingest_document(document_id: UUID, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
     doc = await session.get(Document, document_id)
     if not doc or doc.tenant_id != principal.tenant_id:
         raise HTTPException(404, "document")
     events = await ingest_document(session, principal.tenant_id, doc.id)
-    await write_audit(
-        session,
-        tenant_id=principal.tenant_id,
-        actor=str(principal.user_id),
-        action="document.reingest",
-        entity_type="document",
-        entity_id=str(doc.id),
-        after={"parse_status": doc.parse_status, "event_count": len(events)},
-    )
+    await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="document.reingest", entity_type="document", entity_id=str(doc.id), after={"parse_status": doc.parse_status, "event_count": len(events)})
     await session.commit()
-    return {
-        "id": str(doc.id),
-        "parse_status": doc.parse_status,
-        "event_count": len(events),
-        "project_id": str(doc.project_id) if doc.project_id else None,
-    }
+    return {"id": str(doc.id), "parse_status": doc.parse_status, "event_count": len(events), "project_id": str(doc.project_id) if doc.project_id else None}
 
 
 @router.get("/projects/{project_id}/events")
-async def list_project_events(
-    project_id: UUID,
-    principal: Principal = Depends(get_principal),
-    session: AsyncSession = Depends(get_session),
-) -> list[dict]:
+async def list_project_events(project_id: UUID, principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> list[dict]:
     project = await session.get(Project, project_id)
     if not project or project.tenant_id != principal.tenant_id:
         raise HTTPException(404, "project")
-    rows = (
-        await session.execute(
-            select(Event)
-            .where(Event.tenant_id == principal.tenant_id, Event.project_id == project_id)
-            .order_by(Event.created_at.desc())
-        )
-    ).scalars().all()
-    return [
-        {
-            "id": str(e.id),
-            "type": e.type,
-            "project_id": str(e.project_id) if e.project_id else None,
-            "document_id": str(e.document_id) if e.document_id else None,
-            "payload": e.payload,
-            "confidence": e.confidence,
-        }
-        for e in rows
-    ]
+    rows = (await session.execute(select(Event).where(Event.tenant_id == principal.tenant_id, Event.project_id == project_id).order_by(Event.created_at.desc()))).scalars().all()
+    return [{"id": str(e.id), "type": e.type, "project_id": str(e.project_id) if e.project_id else None, "document_id": str(e.document_id) if e.document_id else None, "payload": e.payload, "confidence": e.confidence} for e in rows]
 
 
 @router.post("/projects/{project_id}/run")
-async def run_agents(
-    project_id: UUID,
-    principal: Principal = Depends(require_write),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
+async def run_agents(project_id: UUID, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
     project = await session.get(Project, project_id)
     if not project or project.tenant_id != principal.tenant_id:
         raise HTTPException(404, "project")
-    docs = (
-        await session.execute(
-            select(Document).where(Document.tenant_id == principal.tenant_id, Document.project_id == project_id)
-        )
-    ).scalars().all()
-    snapshot = ProjectSnapshot(
-        project_id=str(project.id),
-        project_name=project.name,
-        tenant_role=project.tenant_role.value,
-        currency=project.currency.value,
-        document_excerpts=[{"pointer": f"{d.id}#extract", "text": d.extracted_text} for d in docs if d.extracted_text],
-    )
-    result = run_v1_graph(snapshot)
+    docs = (await session.execute(select(Document).where(Document.tenant_id == principal.tenant_id, Document.project_id == project_id))).scalars().all()
+    events = (await session.execute(select(Event).where(Event.tenant_id == principal.tenant_id, Event.project_id == project_id))).scalars().all()
+    result = run_v1_graph(build_snapshot(project, list(events), list(docs)))
     created = []
+    skipped = list(result.dropped)
+    agent_map = {"schedule": AgentName.SCHEDULE, "cashflow": AgentName.CASHFLOW, "change_order": AgentName.CHANGE_ORDER}
     for card in result.cards:
-        finding = Finding(
+        if card.severity == "act" and not card.evidence.pointer.strip():
+            skipped.append(f"{card.title}:act_without_pointer")
+            continue
+        source = card.source_agents[0] if card.source_agents else "orchestrator"
+        session.add(Finding(
             tenant_id=principal.tenant_id,
             project_id=project_id,
-            agent=AgentName.ORCHESTRATOR,
+            agent=agent_map.get(source, AgentName.ORCHESTRATOR),
             severity=Severity(card.severity),
             title=card.title,
             why_it_hits_us=card.why_it_hits_us,
@@ -263,70 +182,31 @@ async def run_agents(
             evidence_pointer=card.evidence.pointer,
             confidence=card.confidence,
             rationale=card.rationale,
-        )
-        if finding.severity == Severity.ACT and not finding.evidence_pointer:
-            continue
-        session.add(finding)
+        ))
         created.append(card.title)
     await session.commit()
-    return {"created": created, "dropped": result.dropped}
+    return {"created": created, "dropped": skipped}
 
 
 @router.get("/digest/today")
-async def digest_today(
-    principal: Principal = Depends(get_principal),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
-    findings = (
-        await session.execute(
-            select(Finding)
-            .where(Finding.tenant_id == principal.tenant_id, Finding.dismissed.is_(False))
-            .order_by(Finding.created_at.desc())
-        )
-    ).scalars().all()
-    unassigned = (
-        await session.execute(
-            select(func.count(Document.id)).where(Document.tenant_id == principal.tenant_id, Document.project_id.is_(None))
-        )
-    ).scalar_one()
+async def digest_today(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
+    findings = (await session.execute(select(Finding).where(Finding.tenant_id == principal.tenant_id, Finding.dismissed.is_(False)).order_by(Finding.created_at.desc()))).scalars().all()
+    unassigned = (await session.execute(select(func.count(Document.id)).where(Document.tenant_id == principal.tenant_id, Document.project_id.is_(None)))).scalar_one()
     projects = (await session.execute(select(Project).where(Project.tenant_id == principal.tenant_id))).scalars().all()
     by_project = {p.id: p.name for p in projects}
 
     def pack(f: Finding) -> dict:
-        return {
-            "id": str(f.id),
-            "project_id": str(f.project_id),
-            "project_name": by_project.get(f.project_id, ""),
-            "severity": f.severity.value,
-            "title": f.title,
-            "why_it_hits_us": f.why_it_hits_us,
-            "evidence_snippet": f.evidence_snippet,
-            "evidence_pointer": f.evidence_pointer,
-            "confidence": f.confidence,
-        }
+        return {"id": str(f.id), "project_id": str(f.project_id), "project_name": by_project.get(f.project_id, ""), "severity": f.severity.value, "title": f.title, "why_it_hits_us": f.why_it_hits_us, "evidence_snippet": f.evidence_snippet, "evidence_pointer": f.evidence_pointer, "confidence": f.confidence}
 
     act = [pack(f) for f in findings if f.severity == Severity.ACT][:5]
     watch = [pack(f) for f in findings if f.severity == Severity.WATCH]
     low = [pack(f) for f in findings if f.severity == Severity.LOW]
     quiet = [p.name for p in projects if all(f.project_id != p.id for f in findings)]
-    return {
-        "date": str(date.today()),
-        "channel_promise": "Morning briefing by email.",
-        "act": act,
-        "watch": watch,
-        "low": low,
-        "quiet_projects": quiet,
-        "unassigned_count": int(unassigned or 0),
-        "ask": (f"{unassigned} files need a project" if unassigned else None),
-    }
+    return {"date": str(date.today()), "channel_promise": "Morning briefing by email.", "act": act, "watch": watch, "low": low, "quiet_projects": quiet, "unassigned_count": int(unassigned or 0), "ask": (f"{unassigned} files need a project" if unassigned else None)}
 
 
 @router.post("/people/invite")
-async def invite_reader(
-    payload: dict,
-    principal: Principal = Depends(require_write),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
+async def invite_reader(payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
     if principal.role != Role.OWNER and payload.get("role", "reader") != "reader":
         raise HTTPException(403, "only owner can invite ops")
     role = Role.READER
@@ -343,84 +223,35 @@ async def invite_reader(
         user = User(email=email, full_name=payload.get("full_name") or email, hashed_password=hash_password(temp_password))
         session.add(user)
         await session.flush()
-    existing = (
-        await session.execute(
-            select(Membership).where(Membership.tenant_id == principal.tenant_id, Membership.user_id == user.id)
-        )
-    ).scalar_one_or_none()
+    existing = (await session.execute(select(Membership).where(Membership.tenant_id == principal.tenant_id, Membership.user_id == user.id))).scalar_one_or_none()
     if existing:
         raise HTTPException(409, "already a member")
     session.add(Membership(tenant_id=principal.tenant_id, user_id=user.id, role=role))
-    await write_audit(
-        session,
-        tenant_id=principal.tenant_id,
-        actor=str(principal.user_id),
-        action="member.invite",
-        entity_type="user",
-        entity_id=str(user.id),
-        after={"role": role.value, "email": email},
-    )
+    await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="member.invite", entity_type="user", entity_id=str(user.id), after={"role": role.value, "email": email})
     await session.commit()
-    return {
-        "user_id": str(user.id),
-        "role": role.value,
-        "email": email,
-        "temporary_password": temp_password,
-        "note": "Reader is read-only. Email invite delivery is stub until Postmark.",
-    }
+    return {"user_id": str(user.id), "role": role.value, "email": email, "temporary_password": temp_password, "note": "Reader is read-only. Email invite delivery is stub until Postmark."}
 
 
 @router.get("/people")
-async def list_people(
-    principal: Principal = Depends(get_principal),
-    session: AsyncSession = Depends(get_session),
-) -> list[dict]:
-    rows = (
-        await session.execute(
-            select(Membership, User).join(User, User.id == Membership.user_id).where(Membership.tenant_id == principal.tenant_id)
-        )
-    ).all()
+async def list_people(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> list[dict]:
+    rows = (await session.execute(select(Membership, User).join(User, User.id == Membership.user_id).where(Membership.tenant_id == principal.tenant_id))).all()
     return [{"user_id": str(u.id), "email": u.email, "name": u.full_name, "role": m.role.value} for m, u in rows]
 
 
 @router.post("/findings/{finding_id}/flag")
-async def flag_finding(
-    finding_id: UUID,
-    payload: dict,
-    principal: Principal = Depends(require_write),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
+async def flag_finding(finding_id: UUID, payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
     finding = await session.get(Finding, finding_id)
     if not finding or finding.tenant_id != principal.tenant_id:
         raise HTTPException(404, "finding")
-    flag = Flag(
-        tenant_id=principal.tenant_id,
-        finding_id=finding.id,
-        user_id=principal.user_id,
-        note=payload.get("note", "This affects us"),
-        share_token=secrets.token_urlsafe(16),
-    )
+    flag = Flag(tenant_id=principal.tenant_id, finding_id=finding.id, user_id=principal.user_id, note=payload.get("note", "This affects us"), share_token=secrets.token_urlsafe(16))
     session.add(flag)
-    await write_audit(
-        session,
-        tenant_id=principal.tenant_id,
-        actor=str(principal.user_id),
-        action="finding.flag",
-        entity_type="finding",
-        entity_id=str(finding.id),
-        after={"note": flag.note},
-    )
+    await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="finding.flag", entity_type="finding", entity_id=str(finding.id), after={"note": flag.note})
     await session.commit()
     return {"share_token": flag.share_token}
 
 
 @router.post("/findings/{finding_id}/dismiss")
-async def dismiss_finding(
-    finding_id: UUID,
-    payload: dict,
-    principal: Principal = Depends(require_write),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
+async def dismiss_finding(finding_id: UUID, payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
     finding = await session.get(Finding, finding_id)
     if not finding or finding.tenant_id != principal.tenant_id:
         raise HTTPException(404, "finding")
