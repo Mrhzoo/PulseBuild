@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 type Card = {
@@ -21,44 +25,86 @@ type Digest = {
   ask: string | null;
 };
 
+function token(): string {
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem("pb_token") || "";
+}
+
 function RiskCard({ card }: { card: Card }) {
   return (
     <article className={`card ${card.severity}`}>
-      <div className="sev">{card.severity.toUpperCase()} · {card.project_name}</div>
+      <div className="sev">
+        {card.severity.toUpperCase()} · {card.project_name}
+        <span className="conf"> · {Math.round(card.confidence * 100)}%</span>
+      </div>
       <h3>{card.title}</h3>
       <p className="why">{card.why_it_hits_us}</p>
       <p className="ev">{card.evidence_snippet} · {card.evidence_pointer}</p>
-      <p className="conf">Confidence {Math.round(card.confidence * 100)}%</p>
     </article>
   );
 }
 
-export default async function HomePage() {
-  let digest: Digest | null = null;
-  try {
-    const res = await fetch(`${API}/api/digest/today`, { cache: "no-store" });
-    if (res.ok) digest = await res.json();
-  } catch {
-    digest = null;
+export default function HomePage() {
+  const [digest, setDigest] = useState<Digest | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState("");
+  const [sending, setSending] = useState(false);
+
+  async function load() {
+    const headers: Record<string, string> = {};
+    const t = token();
+    if (t) headers.Authorization = `Bearer ${t}`;
+    try {
+      const res = await fetch(`${API}/api/digest/today`, { cache: "no-store", headers });
+      if (res.ok) setDigest(await res.json());
+      else if (res.status === 401) setError("Sign in to load today’s briefing.");
+      else setError("Digest is unavailable. No fake risks are shown.");
+    } catch {
+      setError("API is not connected yet. Start the backend, then refresh.");
+    }
   }
+
+  useEffect(() => {
+    setRole(localStorage.getItem("pb_role") || "");
+    void load();
+  }, []);
+
+  async function sendBriefing() {
+    setSending(true);
+    try {
+      const res = await fetch(`${API}/api/digest/today/send`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token()}` },
+      });
+      if (!res.ok) setError("Could not send briefing.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  const canSend = role === "owner" || role === "ops";
 
   return (
     <>
       <h1>Today’s digest</h1>
-      <p className="sub">
-        {digest?.channel_promise || "Morning briefing by email."}{" "}
-        What threatens cash, crew, or margin this week.
-      </p>
-      {!digest && (
-        <div className="card">
-          API is not connected yet. Start the backend, then refresh. No fake risks are shown.
-        </div>
+      <p className="sub">{digest?.channel_promise || "Morning briefing by email."} What threatens cash, crew, or margin this week.</p>
+      {canSend && (
+        <p>
+          <button type="button" onClick={() => void sendBriefing()} disabled={sending}>
+            {sending ? "Sending…" : "Send morning briefing"}
+          </button>
+        </p>
       )}
+      {error && <div className="card">{error}</div>}
       {digest && digest.act.length === 0 && digest.watch.length === 0 && (
-        <div className="card">No files scored yet. Upload a schedule, IPC, or variation email.</div>
+        <div className="card">Quiet morning. Upload a schedule, IPC, or variation email if this project should have news.</div>
       )}
-      {digest?.act.map((c) => <RiskCard key={c.id} card={c} />)}
-      {digest?.watch.map((c) => <RiskCard key={c.id} card={c} />)}
+      {digest?.act.map((c) => (
+        <RiskCard key={c.id} card={c} />
+      ))}
+      {digest?.watch.map((c) => (
+        <RiskCard key={c.id} card={c} />
+      ))}
       {digest && digest.quiet_projects.length > 0 && (
         <p className="muted">Quiet: {digest.quiet_projects.join(", ")}</p>
       )}
