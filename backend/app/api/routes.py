@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import secrets
-from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.graph import run_v1_graph
@@ -186,23 +185,6 @@ async def run_agents(project_id: UUID, principal: Principal = Depends(require_wr
         created.append(card.title)
     await session.commit()
     return {"created": created, "dropped": skipped}
-
-
-@router.get("/digest/today")
-async def digest_today(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
-    findings = (await session.execute(select(Finding).where(Finding.tenant_id == principal.tenant_id, Finding.dismissed.is_(False)).order_by(Finding.created_at.desc()))).scalars().all()
-    unassigned = (await session.execute(select(func.count(Document.id)).where(Document.tenant_id == principal.tenant_id, Document.project_id.is_(None)))).scalar_one()
-    projects = (await session.execute(select(Project).where(Project.tenant_id == principal.tenant_id))).scalars().all()
-    by_project = {p.id: p.name for p in projects}
-
-    def pack(f: Finding) -> dict:
-        return {"id": str(f.id), "project_id": str(f.project_id), "project_name": by_project.get(f.project_id, ""), "severity": f.severity.value, "title": f.title, "why_it_hits_us": f.why_it_hits_us, "evidence_snippet": f.evidence_snippet, "evidence_pointer": f.evidence_pointer, "confidence": f.confidence}
-
-    act = [pack(f) for f in findings if f.severity == Severity.ACT][:5]
-    watch = [pack(f) for f in findings if f.severity == Severity.WATCH]
-    low = [pack(f) for f in findings if f.severity == Severity.LOW]
-    quiet = [p.name for p in projects if all(f.project_id != p.id for f in findings)]
-    return {"date": str(date.today()), "channel_promise": "Morning briefing by email.", "act": act, "watch": watch, "low": low, "quiet_projects": quiet, "unassigned_count": int(unassigned or 0), "ask": (f"{unassigned} files need a project" if unassigned else None)}
 
 
 @router.post("/people/invite")
