@@ -30,7 +30,27 @@ function token(): string {
   return localStorage.getItem("pb_token") || "";
 }
 
-function RiskCard({ card }: { card: Card }) {
+function RiskCard({ card, canWrite }: { card: Card; canWrite: boolean }) {
+  const [note, setNote] = useState("This affects us");
+  const [share, setShare] = useState<string | null>(null);
+
+  async function flag() {
+    const res = await fetch(`${API}/api/findings/${card.id}/flag`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token()}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ note }),
+    });
+    if (res.ok) setShare((await res.json()).share_url);
+  }
+
+  async function dismiss() {
+    await fetch(`${API}/api/findings/${card.id}/dismiss`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token()}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ reason: "not material" }),
+    });
+  }
+
   return (
     <article className={`card ${card.severity}`}>
       <div className="sev">
@@ -40,6 +60,18 @@ function RiskCard({ card }: { card: Card }) {
       <h3>{card.title}</h3>
       <p className="why">{card.why_it_hits_us}</p>
       <p className="ev">{card.evidence_snippet} · {card.evidence_pointer}</p>
+      {canWrite && (
+        <div>
+          <input value={note} onChange={(e) => setNote(e.target.value)} />
+          <button type="button" onClick={() => void flag()}>This affects us</button>
+          <button type="button" onClick={() => void dismiss()}>Dismiss</button>
+        </div>
+      )}
+      {share && (
+        <p className="ev">
+          Share link ready — <button type="button" onClick={() => void navigator.clipboard.writeText(share)}>Copy share link</button>
+        </p>
+      )}
     </article>
   );
 }
@@ -72,10 +104,7 @@ export default function HomePage() {
   async function sendBriefing() {
     setSending(true);
     try {
-      const res = await fetch(`${API}/api/digest/today/send`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token()}` },
-      });
+      const res = await fetch(`${API}/api/digest/today/send`, { method: "POST", headers: { Authorization: `Bearer ${token()}` } });
       if (!res.ok) setError("Could not send briefing.");
     } finally {
       setSending(false);
@@ -90,9 +119,8 @@ export default function HomePage() {
       <p className="sub">{digest?.channel_promise || "Morning briefing by email."} What threatens cash, crew, or margin this week.</p>
       {canSend && (
         <p>
-          <button type="button" onClick={() => void sendBriefing()} disabled={sending}>
-            {sending ? "Sending…" : "Send morning briefing"}
-          </button>
+          <button type="button" onClick={() => void sendBriefing()} disabled={sending}>{sending ? "Sending…" : "Send morning briefing"}</button>{" "}
+          <a href="/flags">Open flags</a>
         </p>
       )}
       {error && <div className="card">{error}</div>}
@@ -100,10 +128,10 @@ export default function HomePage() {
         <div className="card">Quiet morning. Upload a schedule, IPC, or variation email if this project should have news.</div>
       )}
       {digest?.act.map((c) => (
-        <RiskCard key={c.id} card={c} />
+        <RiskCard key={c.id} card={c} canWrite={canSend} />
       ))}
       {digest?.watch.map((c) => (
-        <RiskCard key={c.id} card={c} />
+        <RiskCard key={c.id} card={c} canWrite={canSend} />
       ))}
       {digest && digest.quiet_projects.length > 0 && (
         <p className="muted">Quiet: {digest.quiet_projects.join(", ")}</p>
