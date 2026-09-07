@@ -1,15 +1,9 @@
 # PulseBuild
 
-SME project-risk intelligence for UAE construction first.
+SME project-risk intelligence for UAE construction first. The product is the daily digest. Email is the SLA channel.
 
-**The product is the daily digest.** Email is the SLA channel.
+- S0–S3 closed
+- **S4** flag/share on `main`
+- S5 pilot harden next
 
-Spec: `docs/` v1.1. Ingest: `docs/S1-ingest.md`. Agents: `docs/S2-agents.md`. Digest: `docs/S3-digest.md`.
-
-## Status
-
-- S0 foundation — closed
-- S1 ingest — closed
-- S2 agents v0 — closed
-- S3 digest + email on `main` (Postmark or local stub)
-- S4 flag/share next
+See `docs/S4-flag-share.md`.
