@@ -4,19 +4,7 @@ import enum
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import (
-    Boolean,
-    Date,
-    DateTime,
-    Enum,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-    UniqueConstraint,
-    func,
-)
+from sqlalchemy import Boolean, Date, DateTime, Enum, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -28,12 +16,7 @@ def uid() -> uuid.UUID:
 
 
 def pg_str_enum(enum_cls: type[enum.Enum]) -> Enum:
-    """Store enum values as VARCHAR so Alembic VARCHAR columns match the ORM."""
-    return Enum(
-        enum_cls,
-        native_enum=False,
-        values_callable=lambda members: [item.value for item in members],
-    )
+    return Enum(enum_cls, native_enum=False, values_callable=lambda members: [item.value for item in members])
 
 
 class Country(str, enum.Enum):
@@ -68,12 +51,11 @@ class AgentName(str, enum.Enum):
     CASHFLOW = "cashflow"
     CHANGE_ORDER = "change_order"
     ORCHESTRATOR = "orchestrator"
-    COMPLIANCE = "compliance"  # v1.5 only — do not run in pilot graph
+    COMPLIANCE = "compliance"
 
 
 class Tenant(Base):
     __tablename__ = "tenants"
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     name: Mapped[str] = mapped_column(String(200))
     slug: Mapped[str] = mapped_column(String(80), unique=True)
@@ -82,33 +64,28 @@ class Tenant(Base):
     billing_plan: Mapped[str] = mapped_column(String(40), default="pilot")
     data_residency: Mapped[str] = mapped_column(String(40), default="default")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
     projects: Mapped[list[Project]] = relationship(back_populates="tenant")
     memberships: Mapped[list[Membership]] = relationship(back_populates="tenant")
 
 
 class User(Base):
     __tablename__ = "users"
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     email: Mapped[str] = mapped_column(String(255), unique=True)
     full_name: Mapped[str] = mapped_column(String(200))
     hashed_password: Mapped[str] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
     memberships: Mapped[list[Membership]] = relationship(back_populates="user")
 
 
 class Membership(Base):
     __tablename__ = "memberships"
     __table_args__ = (UniqueConstraint("tenant_id", "user_id"),)
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"))
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
     role: Mapped[Role] = mapped_column(pg_str_enum(Role), default=Role.OPS)
-
     tenant: Mapped[Tenant] = relationship(back_populates="memberships")
     user: Mapped[User] = relationship(back_populates="memberships")
 
@@ -116,29 +93,24 @@ class Membership(Base):
 class Project(Base):
     __tablename__ = "projects"
     __table_args__ = (UniqueConstraint("tenant_id", "code", name="uq_projects_tenant_code"),)
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
     name: Mapped[str] = mapped_column(String(200))
     code: Mapped[str] = mapped_column(String(40))
     slug: Mapped[str] = mapped_column(String(80))
     owner_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    tenant_role: Mapped[TenantRoleOnProject] = mapped_column(
-        pg_str_enum(TenantRoleOnProject), default=TenantRoleOnProject.SUB
-    )
+    tenant_role: Mapped[TenantRoleOnProject] = mapped_column(pg_str_enum(TenantRoleOnProject), default=TenantRoleOnProject.SUB)
     currency: Mapped[Currency] = mapped_column(pg_str_enum(Currency), default=Currency.AED)
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     match_aliases: Mapped[list] = mapped_column(JSONB, default=list)
     forward_address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
     tenant: Mapped[Tenant] = relationship(back_populates="projects")
 
 
 class Party(Base):
     __tablename__ = "parties"
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
     project_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("projects.id"), nullable=True)
@@ -149,7 +121,6 @@ class Party(Base):
 
 class Document(Base):
     __tablename__ = "documents"
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
     project_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("projects.id"), nullable=True, index=True)
@@ -165,7 +136,6 @@ class Document(Base):
 
 class Event(Base):
     __tablename__ = "events"
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
     project_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("projects.id"), nullable=True, index=True)
@@ -178,7 +148,6 @@ class Event(Base):
 
 class Finding(Base):
     __tablename__ = "findings"
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
     project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"), index=True)
@@ -199,7 +168,6 @@ class Finding(Base):
 class Digest(Base):
     __tablename__ = "digests"
     __table_args__ = (UniqueConstraint("tenant_id", "digest_date", name="uq_digests_tenant_date"),)
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
     digest_date: Mapped[date] = mapped_column(Date)
@@ -212,7 +180,6 @@ class Digest(Base):
 
 class Flag(Base):
     __tablename__ = "flags"
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
     finding_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("findings.id"), index=True)
@@ -224,9 +191,33 @@ class Flag(Base):
     share_revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class TokenUsage(Base):
+    __tablename__ = "token_usage"
+    __table_args__ = (UniqueConstraint("tenant_id", "usage_date", name="uq_token_usage_tenant_day"),)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
+    usage_date: Mapped[date] = mapped_column(Date)
+    tokens_used: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AssistedOpsEdit(Base):
+    __tablename__ = "assisted_ops_edits"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
+    actor_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    kind: Mapped[str] = mapped_column(String(40))
+    entity_type: Mapped[str] = mapped_column(String(40), default="finding")
+    entity_id: Mapped[str] = mapped_column(String(64))
+    minutes_spent: Mapped[int] = mapped_column(Integer, default=1)
+    ticket: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    before: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    after: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
-
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
     actor: Mapped[str] = mapped_column(String(120))
