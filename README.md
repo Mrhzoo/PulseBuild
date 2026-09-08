@@ -1,9 +1,9 @@
 # PulseBuild
 
-SME project-risk intelligence for UAE construction first. The product is the daily digest.
+SME project-risk intelligence for UAE construction first. Email is the SLA channel.
 
-- S0–S4 closed
-- **S5** pilot harden on `main` (eval gate, token cap, assisted-ops)
-- S6 WhatsApp / portal / Compliance next
+- S0–S5 closed
+- **S6 / v1.5** on `main` (WhatsApp best-effort, one portal connector, Compliance agent)
+- Next bets outside this stage: billing, Arabic-first UI, network effects
 
-See `docs/S5-pilot-harden.md`.
+See `docs/S6-v1.5.md`.

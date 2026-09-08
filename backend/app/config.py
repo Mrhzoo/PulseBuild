@@ -37,5 +37,14 @@ class Settings(BaseSettings):
     file_encryption_key: str = ""
     local_upload_dir: str = "./data/uploads"
 
+    enable_whatsapp_push: bool = False
+    whatsapp_token: str = ""
+    whatsapp_phone_number_id: str = ""
+    whatsapp_template_name: str = ""
+    enable_compliance_agent: bool = True
+    portal_connector_type: str = "generic_https"
+    portal_base_url: str = ""
+    portal_api_key: str = ""
+
 
 settings = Settings()
