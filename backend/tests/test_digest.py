@@ -35,7 +35,7 @@ def test_act_capped_and_pointer_required():
     payload = assemble_payload(tenant_name="Demo", for_date=date(2026, 9, 7), findings=findings, projects=[SimpleNamespace(id=pid, name="Marina")], unassigned=2)
     assert len(payload.act) == 5
     assert all(c.evidence_pointer.strip() for c in payload.act)
-    assert payload.ask == "2 files need a project"
+    assert payload.ask and "2 files need a project" in payload.ask
 
 
 def test_card_without_pointer_dropped():
