@@ -9,8 +9,9 @@ from typing import Any
 from app.schemas.agents import ProjectSnapshot
 
 DATEISH = re.compile(
-    r"(\b\d{1,2}\s*(day|days|week|weeks|شهر|يوم)\b|\b20\d{2}[-/]\d{1,2}[-/]\d{1,2}\b|"
-    r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b7[-–]14\b|\bnext\s+\d+)",
+    r"(\b\d{1,2}\s*(day|days|week|weeks|شهر|يوم|أسبوع)\b|\bأسبوعين\b|\b20\d{2}[-/]\d{1,2}[-/]\d{1,2}\b|"
+    r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{1,2}\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b|"
+    r"\b7[-–]14\b|\bnext\s+\d+)",
     re.I,
 )
 AMOUNTISH = re.compile(r"(AED|SAR|USD|د.\إ|ريال)\s*[\d,]+|[\d,]+\s*(AED|SAR|USD)", re.I)
@@ -35,14 +36,7 @@ def collect_signals(snapshot: ProjectSnapshot) -> list[Signal]:
     signals: list[Signal] = []
     for i, event in enumerate(snapshot.events):
         payload = event.get("payload") if isinstance(event.get("payload"), dict) else {}
-        parts = [
-            str(event.get("type") or ""),
-            str(payload.get("text") or ""),
-            str(payload.get("body") or ""),
-            str(payload.get("subject") or ""),
-            str(payload.get("activity") or ""),
-            str(event.get("text") or ""),
-        ]
+        parts = [str(event.get("type") or ""), str(payload.get("text") or ""), str(payload.get("body") or ""), str(payload.get("subject") or ""), str(payload.get("activity") or ""), str(event.get("text") or "")]
         blob = " ".join(p for p in parts if p).strip()
         pointer = _pointer_from(payload, str(event.get("pointer") or f"{snapshot.project_id}#event:{i+1}"))
         if blob:
