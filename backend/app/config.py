@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     enable_live_llm: bool = False
     tenant_daily_token_cap: int = 250_000
+    assisted_ops_daily_minutes: int = 30
+    assisted_ops_requires_ticket: bool = False
 
     postmark_server_token: str = ""
     postmark_inbound_secret: str = ""
