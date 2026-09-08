@@ -52,6 +52,19 @@ GOLDEN_CASES = [
         },
     },
     {
+        "name": "compliance_insurance_expiry",
+        "snapshot": {
+            "project_id": "p6",
+            "project_name": "Marina Fitout",
+            "tenant_role": "sub",
+            "currency": "AED",
+            "events": [],
+            "document_excerpts": [
+                {"pointer": "doc-ins-6#p1", "text": "Contractor insurance certificate expires 30 Sep 2026."}
+            ],
+        },
+    },
+    {
         "name": "thin_empty",
         "snapshot": {
             "project_id": "p4",
