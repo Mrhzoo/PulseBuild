@@ -39,6 +39,19 @@ GOLDEN_CASES = [
         },
     },
     {
+        "name": "arabic_delay_letter",
+        "snapshot": {
+            "project_id": "p5",
+            "project_name": "Al Furjan Villa",
+            "tenant_role": "sub",
+            "currency": "AED",
+            "events": [],
+            "document_excerpts": [
+                {"pointer": "doc-ar-1#p1", "text": "يوجد تأخير أسبوعين في البرنامج بسبب تأخر التسليم."}
+            ],
+        },
+    },
+    {
         "name": "thin_empty",
         "snapshot": {
             "project_id": "p4",
