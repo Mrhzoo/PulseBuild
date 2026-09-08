@@ -11,6 +11,7 @@ from app.db import get_session
 from app.digest.builder import build_digest, persist_digest
 from app.digest.emailer import send_digest_email
 from app.digest.recipients import briefing_recipients
+from app.notify.whatsapp import notify_digest, whatsapp_numbers
 from app.services.audit import write_audit
 
 router = APIRouter()
@@ -43,7 +44,16 @@ async def digest_send(principal: Principal = Depends(require_write), session: As
         via = await send_digest_email(payload, recipients)
     except RuntimeError as exc:
         raise HTTPException(503, str(exc)) from exc
-    await persist_digest(session, principal.tenant_id, payload, delivered_via="email+web" if via == "email" else via)
-    await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="digest.send", entity_type="digest", entity_id=payload.digest_id or "", after={"via": via, "recipients": len(recipients)})
+    delivered = "email+web" if via == "email" else via
+    wa = "skipped"
+    try:
+        numbers = await whatsapp_numbers(session, principal.tenant_id)
+        wa = await notify_digest(payload, numbers)
+        if wa in {"whatsapp", "stub"}:
+            delivered = f"{delivered}+whatsapp"
+    except Exception:
+        wa = "failed"
+    await persist_digest(session, principal.tenant_id, payload, delivered_via=delivered)
+    await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="digest.send", entity_type="digest", entity_id=payload.digest_id or "", after={"via": delivered, "whatsapp": wa, "recipients": len(recipients)})
     await session.commit()
-    return {"ok": True, "delivered_via": payload.delivered_via, "digest_id": payload.digest_id, "recipients": recipients if settings.app_env == "development" else len(recipients)}
+    return {"ok": True, "delivered_via": payload.delivered_via, "whatsapp": wa, "digest_id": payload.digest_id, "recipients": recipients if settings.app_env == "development" else len(recipients)}
