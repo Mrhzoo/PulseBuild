@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from app.agents.graph import run_v1_graph
-from app.schemas.agents import ProjectSnapshot
 from app.eval.golden import GOLDEN_CASES
+from app.schemas.agents import ProjectSnapshot
 
 
 def evidence_rate(results: list[tuple[str, object]]) -> float:
@@ -24,14 +24,22 @@ def evidence_rate(results: list[tuple[str, object]]) -> float:
 
 def run_golden() -> dict:
     runs = []
+    details = []
+    empty_act = 0
     for case in GOLDEN_CASES:
         snap = ProjectSnapshot(**case["snapshot"])
         result = run_v1_graph(snap)
         runs.append((case["name"], result))
+        act = [c for c in result.cards if c.severity == "act"]
+        if case["name"] == "thin_empty":
+            empty_act = len(act)
+        details.append({"name": case["name"], "cards": len(result.cards), "act": len(act), "dropped": result.dropped})
     rate = evidence_rate(runs)
     return {
         "cases": len(runs),
         "act_evidence_rate": rate,
-        "pass": rate >= 0.95,
+        "empty_act_cards": empty_act,
+        "pass": rate >= 0.95 and empty_act == 0,
+        "details": details,
         "dropped": [d for _, r in runs for d in r.dropped],
     }
