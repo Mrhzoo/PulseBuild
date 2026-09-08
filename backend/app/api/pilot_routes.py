@@ -8,10 +8,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import Principal, get_principal, require_write
 from app.config import settings
 from app.db import get_session
+from app.eval.harness import run_golden
 from app.services.assisted_ops import apply_edit, minutes_used
 from app.services.usage import remaining, tokens_used_today
 
 router = APIRouter()
+
+
+@router.get("/eval/golden")
+async def eval_golden(principal: Principal = Depends(require_write)) -> dict:
+    return run_golden()
 
 
 @router.get("/assisted-ops/usage")
