@@ -40,7 +40,8 @@ def subject_line(payload: DigestPayload) -> str:
 
 def coaching_ask(unassigned: int, project_names: list[str], has_material: bool) -> str | None:
     if unassigned:
-        return f"{unassigned} files need a project"
+        noun = "file" if unassigned == 1 else "files"
+        return f"{unassigned} {noun} need a project — assign them so tomorrow’s briefing can score them."
     if project_names and not has_material:
-        return f"Upload last IPC or programme for {project_names[0]}"
+        return f"Quiet on {project_names[0]}. Upload the latest programme, last IPC, or a variation email so we have something real to read."
     return None
