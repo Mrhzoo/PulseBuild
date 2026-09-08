@@ -1,4 +1,4 @@
-"""Pydantic contracts for the v1 agent graph. Compliance is excluded."""
+"""Pydantic contracts for the v1 agent graph."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ class Evidence(BaseModel):
 
 
 class AgentFinding(BaseModel):
-    agent: Literal["schedule", "cashflow", "change_order"]
+    agent: Literal["schedule", "cashflow", "change_order", "compliance"]
     proposed_severity: Literal["act", "watch", "low"]
     title: str
     why_it_hits_us: str
