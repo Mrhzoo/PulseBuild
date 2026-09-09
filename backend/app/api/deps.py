@@ -54,3 +54,9 @@ def require_write(principal: Principal = Depends(get_principal)) -> Principal:
     if not principal.can_write:
         raise HTTPException(403, "Reader cannot mutate")
     return principal
+
+
+def require_owner(principal: Principal = Depends(get_principal)) -> Principal:
+    if principal.role != Role.OWNER:
+        raise HTTPException(403, "Owner only")
+    return principal
