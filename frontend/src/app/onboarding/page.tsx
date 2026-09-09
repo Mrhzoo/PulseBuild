@@ -22,9 +22,6 @@ export default function OnboardingPage() {
     const data = await res.json();
     setForward(data.forward_address || "");
   }
-  async defComplete() {
-    await fetch(`${API}/api/onboarding/complete`, { method: "POST", headers: { Authorization: `Bearer ${token()}` } });
-  }
   async function complete() {
     await fetch(`${API}/api/onboarding/complete`, { method: "POST", headers: { Authorization: `Bearer ${token()}` } });
   }
@@ -39,7 +36,7 @@ export default function OnboardingPage() {
         {forward && <p className="ev">{t.forward_tip} {forward}</p>}
       </div>
       <div className="card">
-        <p>2. {t.invite_reader} — optional via API /people/invite</p>
+        <p>2. {t.invite_reader}</p>
         <p>3. <a href="/billing">{t.billing}</a></p>
         <button type="button" onClick={() => void complete()}>Done</button>
       </div>

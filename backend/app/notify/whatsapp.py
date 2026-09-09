@@ -32,8 +32,20 @@ def write_stub(payload: DigestPayload, numbers: list[str]) -> Path:
     return path
 
 
-def _configured() -> bool:
-    return bool(settings.enable_whatsapp_push and (settings.whatsapp_token or "").strip() and (settings.whatsapp_phone_number_id or "").strip() and settings.app_env != "development")
+def _must_use_template() -> bool:
+    return settings.app_env != "development" and not settings.whatsapp_allow_session_text
+
+
+def _message_payload(payload: DigestPayload, number: str) -> dict:
+    to = number.lstrip("+")
+    if settings.whatsapp_template_name and (_must_use_template() or settings.whatsapp_template_name):
+        return {
+            "messaging_product": "whatsapp",
+            "to": to,
+            "type": "template",
+            "template": {"name": settings.whatsapp_template_name, "language": {"code": "en"}},
+        }
+    return {"messaging_product": "whatsapp", "to": to, "type": "text", "text": {"body": _preview_text(payload)}}
 
 
 async def whatsapp_numbers(session: AsyncSession, tenant_id: UUID) -> list[str]:
@@ -44,20 +56,20 @@ async def whatsapp_numbers(session: AsyncSession, tenant_id: UUID) -> list[str]:
 async def notify_digest(payload: DigestPayload, numbers: list[str]) -> str:
     if not numbers:
         return "skipped"
-    if not settings.enable_whatsapp_push or not _configured():
+    configured = bool(settings.enable_whatsapp_push and (settings.whatsapp_token or "").strip() and (settings.whatsapp_phone_number_id or "").strip())
+    if not configured or settings.app_env == "development":
         write_stub(payload, numbers)
         return "stub"
+    if _must_use_template() and not (settings.whatsapp_template_name or "").strip():
+        write_stub(payload, numbers)
+        return "failed"
     token = settings.whatsapp_token.strip()
     phone_id = settings.whatsapp_phone_number_id.strip()
     url = f"https://graph.facebook.com/v21.0/{phone_id}/messages"
-    body_text = _preview_text(payload)
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             for number in numbers:
-                payload_json = {"messaging_product": "whatsapp", "to": number.lstrip("+"), "type": "text", "text": {"body": body_text}}
-                if settings.whatsapp_template_name:
-                    payload_json = {"messaging_product": "whatsapp", "to": number.lstrip("+"), "type": "template", "template": {"name": settings.whatsapp_template_name, "language": {"code": "en"}}}
-                await client.post(url, headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"}, json=payload_json)
+                await client.post(url, headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"}, json=_message_payload(payload, number))
         return "whatsapp"
     except Exception:
         write_stub(payload, numbers)
