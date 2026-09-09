@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     enable_live_llm: bool = False
     tenant_daily_token_cap: int = 250_000
     assisted_ops_daily_minutes: int = 30
-    assisted_ops_requires_ticket: bool = False
+    assisted_ops_requires_ticket: bool = True
 
     postmark_server_token: str = ""
     postmark_inbound_secret: str = ""
@@ -41,10 +41,19 @@ class Settings(BaseSettings):
     whatsapp_token: str = ""
     whatsapp_phone_number_id: str = ""
     whatsapp_template_name: str = ""
+    whatsapp_verify_token: str = ""
+    whatsapp_allow_session_text: bool = False
     enable_compliance_agent: bool = True
     portal_connector_type: str = "generic_https"
     portal_base_url: str = ""
     portal_api_key: str = ""
+
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_price_pilot_aed: str = ""
+    stripe_price_project_addon_aed: str = ""
+    billing_stub: bool = True
+    default_project_quota: int = 3
 
 
 settings = Settings()
