@@ -1,0 +1,19 @@
+{
+  "digest_title": "Today’s digest",
+  "send_briefing": "Send morning briefing",
+  "open_flags": "Open flags",
+  "quiet_morning": "Quiet morning. Upload a schedule, last IPC, or a variation email.",
+  "whatsapp_best_effort": "WhatsApp is optional and best-effort — email is the morning SLA.",
+  "billing": "Billing",
+  "onboarding": "Get started",
+  "manage_billing": "Manage billing",
+  "upgrade": "Start AED pilot",
+  "projects_quota": "Projects used",
+  "company_name": "Company name",
+  "create_project": "Create project",
+  "invite_reader": "Invite a reader",
+  "forward_tip": "Forward project mail to the address on the project.",
+  "login": "Sign in",
+  "flag_this": "This affects us",
+  "dismiss": "Dismiss"
+}
