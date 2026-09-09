@@ -49,6 +49,7 @@ async def test_whatsapp_mock_graph_call(monkeypatch):
     monkeypatch.setattr(config.settings, "app_env", "staging")
     monkeypatch.setattr(config.settings, "whatsapp_token", "tok")
     monkeypatch.setattr(config.settings, "whatsapp_phone_number_id", "123")
+    monkeypatch.setattr(config.settings, "whatsapp_template_name", "morning_brief")
     called = {}
 
     class _Resp:
@@ -64,12 +65,14 @@ async def test_whatsapp_mock_graph_call(monkeypatch):
             return None
         async def post(self, url, headers=None, json=None):
             called["url"] = url
+            called["json"] = json
             return _Resp()
 
     monkeypatch.setattr("app.notify.whatsapp.httpx.AsyncClient", _Client)
     payload = DigestPayload(date="2026-09-08", tenant="Demo", company="Demo", projects_scanned=1, digest_id="d1")
     assert await notify_digest(payload, ["971500000000"]) == "whatsapp"
     assert "graph.facebook.com" in called["url"]
+    assert called["json"]["type"] == "template"
 
 
 def test_reader_cannot_sync_portal():
