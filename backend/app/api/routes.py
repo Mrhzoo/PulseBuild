@@ -12,23 +12,11 @@ from app.agents.graph import run_v1_graph
 from app.agents.snapshot import build_snapshot
 from app.api.deps import Principal, get_principal, require_write
 from app.db import get_session
-from app.eval.harness import run_golden
 from app.ingest.pipeline import ingest_document, sniff_parser
-from app.models.orm import (
-    AgentName,
-    Document,
-    Event,
-    Finding,
-    Flag,
-    Membership,
-    Project,
-    Role,
-    Severity,
-    Tenant,
-    User,
-)
+from app.models.orm import AgentName, Document, Event, Finding, Flag, Membership, Project, Role, Severity, Tenant, User
 from app.security import hash_password
 from app.services.audit import write_audit
+from app.services.billing import enforce_project_quota
 from app.services.crypto_store import write_encrypted
 from app.services.matching import match_inbound
 from app.services.tenancy import require_project_for_tenant
@@ -39,11 +27,6 @@ router = APIRouter()
 @router.get("/health")
 async def health() -> dict:
     return {"ok": True, "product": "pulsebuild", "channel": "email"}
-
-
-@router.get("/eval/golden")
-async def golden() -> dict:
-    return run_golden()
 
 
 @router.get("/projects")
@@ -57,16 +40,10 @@ async def create_project(payload: dict, principal: Principal = Depends(require_w
     tenant = await session.get(Tenant, principal.tenant_id)
     if not tenant:
         raise HTTPException(404, "tenant")
+    await enforce_project_quota(session, tenant)
     code = payload["code"].strip()
     slug = payload.get("slug") or code.lower()
-    project = Project(
-        tenant_id=principal.tenant_id,
-        name=payload["name"],
-        code=code,
-        slug=slug,
-        match_aliases=payload.get("aliases", []),
-        forward_address=f"{slug}@{tenant.slug}.pulsebuild.local",
-    )
+    project = Project(tenant_id=principal.tenant_id, name=payload["name"], code=code, slug=slug, match_aliases=payload.get("aliases", []), forward_address=f"{slug}@{tenant.slug}.pulsebuild.local")
     session.add(project)
     await session.commit()
     await session.refresh(project)
@@ -74,16 +51,9 @@ async def create_project(payload: dict, principal: Principal = Depends(require_w
 
 
 @router.post("/documents")
-async def upload_document(
-    file: UploadFile = File(...),
-    project_id: str | None = Form(default=None),
-    subject: str | None = Form(default=None),
-    principal: Principal = Depends(require_write),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
+async def upload_document(file: UploadFile = File(...), project_id: str | None = Form(default=None), subject: str | None = Form(default=None), principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
     raw = await file.read()
     digest = hashlib.sha256(raw).hexdigest()
-    text = ""
     try:
         text = raw.decode("utf-8", errors="ignore")[:20_000]
     except Exception:
@@ -99,17 +69,7 @@ async def upload_document(
     write_encrypted(storage_key, raw)
     kind = sniff_parser(file.filename or "", "upload")
     source_type = {"pdf": "pdf", "excel": "excel", "email": "email", "whatsapp": "whatsapp"}.get(kind, "upload")
-    doc = Document(
-        tenant_id=principal.tenant_id,
-        project_id=assigned,
-        source_type=source_type,
-        filename=file.filename or "untitled",
-        content_hash=digest,
-        storage_key=storage_key,
-        extracted_text=text,
-        language="mixed",
-        parse_status="pending",
-    )
+    doc = Document(tenant_id=principal.tenant_id, project_id=assigned, source_type=source_type, filename=file.filename or "untitled", content_hash=digest, storage_key=storage_key, extracted_text=text, language="mixed", parse_status="pending")
     session.add(doc)
     await session.flush()
     events = await ingest_document(session, principal.tenant_id, doc.id)
@@ -164,24 +124,13 @@ async def run_agents(project_id: UUID, principal: Principal = Depends(require_wr
     result = run_v1_graph(build_snapshot(project, list(events), list(docs)))
     created = []
     skipped = list(result.dropped)
-    agent_map = {"schedule": AgentName.SCHEDULE, "cashflow": AgentName.CASHFLOW, "change_order": AgentName.CHANGE_ORDER}
+    agent_map = {"schedule": AgentName.SCHEDULE, "cashflow": AgentName.CASHFLOW, "change_order": AgentName.CHANGE_ORDER, "compliance": AgentName.COMPLIANCE}
     for card in result.cards:
         if card.severity == "act" and not card.evidence.pointer.strip():
             skipped.append(f"{card.title}:act_without_pointer")
             continue
         source = card.source_agents[0] if card.source_agents else "orchestrator"
-        session.add(Finding(
-            tenant_id=principal.tenant_id,
-            project_id=project_id,
-            agent=agent_map.get(source, AgentName.ORCHESTRATOR),
-            severity=Severity(card.severity),
-            title=card.title,
-            why_it_hits_us=card.why_it_hits_us,
-            evidence_snippet=card.evidence.snippet,
-            evidence_pointer=card.evidence.pointer,
-            confidence=card.confidence,
-            rationale=card.rationale,
-        ))
+        session.add(Finding(tenant_id=principal.tenant_id, project_id=project_id, agent=agent_map.get(source, AgentName.ORCHESTRATOR), severity=Severity(card.severity), title=card.title, why_it_hits_us=card.why_it_hits_us, evidence_snippet=card.evidence.snippet, evidence_pointer=card.evidence.pointer, confidence=card.confidence, rationale=card.rationale))
         created.append(card.title)
     await session.commit()
     return {"created": created, "dropped": skipped}
@@ -217,7 +166,7 @@ async def invite_reader(payload: dict, principal: Principal = Depends(require_wr
 @router.get("/people")
 async def list_people(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> list[dict]:
     rows = (await session.execute(select(Membership, User).join(User, User.id == Membership.user_id).where(Membership.tenant_id == principal.tenant_id))).all()
-    return [{"user_id": str(u.id), "email": u.email, "name": u.full_name, "role": m.role.value} for m, u in rows]
+    return [{"user_id": str(u.id), "email": u.email, "name": u.full_name, "role": m.role.value, "whatsapp_e164": u.whatsapp_e164} for m, u in rows]
 
 
 @router.post("/findings/{finding_id}/flag")
