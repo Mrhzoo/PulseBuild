@@ -2,8 +2,8 @@
 
 SME project-risk intelligence for UAE construction first. Email is the SLA channel.
 
-- S0–S5 closed
-- **S6 / v1.5** on `main` (WhatsApp best-effort, one portal connector, Compliance agent)
-- Next bets outside this stage: billing, Arabic-first UI, network effects
+- S0–S6 closed
+- **S7** repeatable product on `main` (AED billing, Arabic UI, Meta WhatsApp checklist, assisted-ops tickets, onboarding)
+- Next: network effects / ops polish — no further stage until review
 
-See `docs/S6-v1.5.md`.
+See `docs/S7-repeatable.md` and `docs/S7-meta-whatsapp.md`.
