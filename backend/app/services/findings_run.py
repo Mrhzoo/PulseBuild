@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.graph import run_v1_graph
 from app.agents.snapshot import build_snapshot
+from app.config import settings
 from app.models.orm import AgentName, Document, Event, Finding, Project, Severity
 from app.schemas.agents import AgentGraphResult
 
@@ -18,6 +19,8 @@ AGENT_MAP = {
     "change_order": AgentName.CHANGE_ORDER,
     "compliance": AgentName.COMPLIANCE,
 }
+
+SKIP_PARSE = {"needs_better_file", "failed", "pending"}
 
 
 def finding_key(agent: str, pointer: str) -> tuple[str, str]:
@@ -106,3 +109,16 @@ async def run_project_agents(session: AsyncSession, tenant_id: UUID, project: Pr
     events = list((await session.execute(select(Event).where(Event.tenant_id == tenant_id, Event.project_id == project.id))).scalars().all())
     result = run_v1_graph(build_snapshot(project, events, docs))
     return await persist_graph_result(session, tenant_id, project.id, result)
+
+
+async def maybe_auto_run(session: AsyncSession, tenant_id: UUID, project_id: UUID | None, parse_status: str | None = None) -> dict | None:
+    if not settings.auto_run_agents_on_upload:
+        return None
+    if project_id is None:
+        return None
+    if (parse_status or "") in SKIP_PARSE:
+        return None
+    project = await session.get(Project, project_id)
+    if not project or project.tenant_id != tenant_id:
+        return None
+    return await run_project_agents(session, tenant_id, project)
