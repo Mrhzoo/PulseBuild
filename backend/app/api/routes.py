@@ -50,6 +50,15 @@ async def create_project(payload: dict, principal: Principal = Depends(require_w
     return {"id": str(project.id), "forward_address": project.forward_address}
 
 
+@router.get("/documents")
+async def list_documents(unassigned: int = 0, principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> list[dict]:
+    stmt = select(Document).where(Document.tenant_id == principal.tenant_id)
+    if unassigned:
+        stmt = stmt.where(Document.project_id.is_(None))
+    rows = (await session.execute(stmt.order_by(Document.created_at.desc()))).scalars().all()
+    return [{"id": str(d.id), "filename": d.filename, "project_id": str(d.project_id) if d.project_id else None, "parse_status": d.parse_status, "unassigned": d.project_id is None} for d in rows]
+
+
 @router.post("/documents")
 async def upload_document(file: UploadFile = File(...), project_id: str | None = Form(default=None), subject: str | None = Form(default=None), principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
     raw = await file.read()
