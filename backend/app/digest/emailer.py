@@ -7,10 +7,32 @@ from pathlib import Path
 import httpx
 
 from app.config import settings
-from app.digest.payload import DigestPayload, subject_line
+from app.digest.payload import DigestPayload, resolve_locale, subject_line
+
+
+def _copy(locale: str) -> dict[str, str]:
+    if locale == "ar":
+        return {
+            "promise": "الإحاطة الصباحية عبر البريد.",
+            "quiet": "صباح هادئ. لا بنود إجراء.",
+            "quiet_label": "هادئ",
+            "open": "افتح الملخص",
+            "scanned": "مشاريع مراجعة",
+            "ask_fallback": "لا شيء للتعيين.",
+        }
+    return {
+        "promise": "Morning briefing by email.",
+        "quiet": "Quiet morning. No Act items.",
+        "quiet_label": "Quiet",
+        "open": "Open digest",
+        "scanned": "projects scanned",
+        "ask_fallback": "Nothing to assign.",
+    }
 
 
 def _html(payload: DigestPayload) -> str:
+    locale = resolve_locale(payload)
+    c = _copy(locale)
     home = settings.web_base_url.rstrip("/")
     cards = ""
     for card in payload.act + payload.watch:
@@ -22,26 +44,29 @@ def _html(payload: DigestPayload) -> str:
             f"<p style='color:#5c6b7a;font-size:13px'>{card.evidence_snippet} · {card.evidence_pointer} · {pct}%</p>"
         )
     quiet = ", ".join(payload.quiet_projects) or "—"
-    ask = payload.ask or "Nothing to assign."
+    ask = payload.ask or c["ask_fallback"]
+    direction = "rtl" if locale == "ar" else "ltr"
     return f"""<!doctype html>
-<html><body style="font-family:Georgia,serif;color:#1a2330">
-<p>Morning briefing by email.</p>
-<p>{payload.company} · {payload.date} · {payload.projects_scanned} projects scanned.</p>
-{cards or "<p>Quiet morning. No Act items.</p>"}
-<p>Quiet: {quiet}</p>
+<html lang="{locale}" dir="{direction}"><body style="font-family:Georgia,serif;color:#1a2330">
+<p>{c["promise"]}</p>
+<p>{payload.company} · {payload.date} · {payload.projects_scanned} {c["scanned"]}.</p>
+{cards or f"<p>{c['quiet']}</p>"}
+<p>{c["quiet_label"]}: {quiet}</p>
 <p>{ask}</p>
-<p><a href="{home}">Open digest</a></p>
+<p><a href="{home}">{c["open"]}</a></p>
 </body></html>"""
 
 
 def _text(payload: DigestPayload) -> str:
-    lines = ["Morning briefing by email.", f"{payload.company} · {payload.date}"]
+    locale = resolve_locale(payload)
+    c = _copy(locale)
+    lines = [c["promise"], f"{payload.company} · {payload.date}"]
     for card in payload.act + payload.watch:
         lines.append(f"- {card.severity.upper()} {card.project_name}: {card.title} ({round(card.confidence * 100)}% · {card.evidence_pointer})")
     if not payload.act and not payload.watch:
-        lines.append("Quiet morning. No Act items.")
+        lines.append(c["quiet"])
     if payload.quiet_projects:
-        lines.append("Quiet: " + ", ".join(payload.quiet_projects))
+        lines.append(f"{c['quiet_label']}: " + ", ".join(payload.quiet_projects))
     if payload.ask:
         lines.append(payload.ask)
     lines.append(settings.web_base_url)
