@@ -13,6 +13,7 @@ class DigestCard(BaseModel):
     evidence_snippet: str
     evidence_pointer: str
     confidence: float
+    agent: str = ""
 
 
 class DigestPayload(BaseModel):
