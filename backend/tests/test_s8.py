@@ -10,6 +10,7 @@ REQUIRED_I18N = {
     "digest_title", "login", "logout", "login_failed", "email", "password",
     "projects", "upload", "flags", "billing", "onboarding", "errors_unavailable",
     "sign_in_link", "whatsapp_best_effort", "quiet_morning",
+    "nav_home", "get_started", "hero_line1", "trust", "stat_briefing",
 }
 
 
