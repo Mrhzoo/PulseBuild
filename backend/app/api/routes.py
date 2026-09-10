@@ -13,7 +13,7 @@ from app.agents.snapshot import build_snapshot
 from app.api.deps import Principal, get_principal, require_write
 from app.db import get_session
 from app.ingest.pipeline import ingest_document, sniff_parser
-from app.models.orm import AgentName, Document, Event, Finding, Flag, Membership, Project, Role, Severity, Tenant, User
+from app.models.orm import AgentName, Document, Event, Finding, Membership, Project, Role, Severity, Tenant, User
 from app.security import hash_password
 from app.services.audit import write_audit
 from app.services.billing import enforce_project_quota
@@ -176,26 +176,3 @@ async def invite_reader(payload: dict, principal: Principal = Depends(require_wr
 async def list_people(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> list[dict]:
     rows = (await session.execute(select(Membership, User).join(User, User.id == Membership.user_id).where(Membership.tenant_id == principal.tenant_id))).all()
     return [{"user_id": str(u.id), "email": u.email, "name": u.full_name, "role": m.role.value, "whatsapp_e164": u.whatsapp_e164} for m, u in rows]
-
-
-@router.post("/findings/{finding_id}/flag")
-async def flag_finding(finding_id: UUID, payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
-    finding = await session.get(Finding, finding_id)
-    if not finding or finding.tenant_id != principal.tenant_id:
-        raise HTTPException(404, "finding")
-    flag = Flag(tenant_id=principal.tenant_id, finding_id=finding.id, user_id=principal.user_id, note=payload.get("note", "This affects us"), share_token=secrets.token_urlsafe(16))
-    session.add(flag)
-    await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="finding.flag", entity_type="finding", entity_id=str(finding.id), after={"note": flag.note})
-    await session.commit()
-    return {"share_token": flag.share_token}
-
-
-@router.post("/findings/{finding_id}/dismiss")
-async def dismiss_finding(finding_id: UUID, payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
-    finding = await session.get(Finding, finding_id)
-    if not finding or finding.tenant_id != principal.tenant_id:
-        raise HTTPException(404, "finding")
-    finding.dismissed = True
-    finding.dismiss_reason = payload.get("reason", "")
-    await session.commit()
-    return {"ok": True}
