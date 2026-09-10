@@ -11,6 +11,7 @@ from app.db import get_session
 from app.models.orm import Flag, Finding, Project
 from app.services.audit import write_audit
 from app.services.flags import create_flag, dismiss_flag, public_share_payload, revoke_share, share_url
+from app.services.packs import create_pack, is_pack_note
 
 router = APIRouter()
 
@@ -44,7 +45,14 @@ async def list_flags(principal: Principal = Depends(get_principal), session: Asy
         if finding:
             project = await session.get(Project, finding.project_id)
             project_name = project.name if project else ""
-        out.append({"id": str(flag.id), "finding_id": str(flag.finding_id), "note": flag.note, "project_name": project_name, "title": finding.title if finding else "", "created_at": flag.created_at.isoformat() if flag.created_at else None, "share_url": share_url(flag.share_token) if flag.share_revoked_at is None else None, "share_revoked": flag.share_revoked_at is not None})
+        out.append({"id": str(flag.id), "finding_id": str(flag.finding_id), "note": flag.note, "project_name": project_name, "title": finding.title if finding else "", "created_at": flag.created_at.isoformat() if flag.created_at else None, "share_url": share_url(flag.share_token) if flag.share_revoked_at is None else None, "share_revoked": flag.share_revoked_at is not None, "pack": is_pack_note(flag.note)})
+    return out
+
+
+@router.post("/flags/pack")
+async def make_pack(principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+    out = await create_pack(session, tenant_id=principal.tenant_id, user_id=principal.user_id)
+    await session.commit()
     return out
 
 
