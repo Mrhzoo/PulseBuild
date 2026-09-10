@@ -55,5 +55,7 @@ class Settings(BaseSettings):
     billing_stub: bool = True
     default_project_quota: int = 3
 
+    auto_run_agents_on_upload: bool = True
+
 
 settings = Settings()
