@@ -1,12 +1,10 @@
 # PulseBuild
 
-SME project-risk intelligence for UAE construction first. Email is the SLA channel.
+Morning project-risk briefings for UAE construction SMEs. Email is the SLA. WhatsApp is best-effort. Act cards require an evidence pointer.
 
-- S0–S10 closed
-- **S11** cinematic login + app shell on `main`
-- Next: S12 pricing — not started
+S0–S19 closed. **S20** i18n + marketing honesty on `main`.
 
-Theme: `pb_theme`. Locale: `pb_locale`. See `docs/S10-design-system.md` and `docs/S11-auth-shell.md`.
+Theme: `pb_theme`. Locale: `pb_locale`.
 
 ## Local demo
 
@@ -18,7 +16,9 @@ cd ../frontend && npm run dev
 ```
 
 - Landing: http://localhost:3000/
-- Login: http://localhost:3000/login
+- Login: http://localhost:3000/login (also http://127.0.0.1:3000)
 - Digest: http://localhost:3000/app
 
 Seed: `owner@demo.pulsebuild.local` / `demo-owner-pass`
+
+Morning cron: `cd backend && python -m scripts.send_morning_digests`

@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import en from "../i18n/en.json";
+import ar from "../i18n/ar.json";
 
 const ALL = [
-  { href: "/app", label: "Digest", roles: ["owner", "ops", "reader"] },
-  { href: "/app/projects", label: "Projects", roles: ["owner", "ops", "reader"] },
-  { href: "/app/flags", label: "Flags", roles: ["owner", "ops", "reader"] },
-  { href: "/app/billing", label: "Billing", roles: ["owner", "ops"] },
-  { href: "/app/onboarding", label: "Onboarding", roles: ["owner", "ops"] },
-  { href: "/app/settings", label: "Settings", roles: ["owner", "ops", "reader"] },
+  { href: "/app", key: "digest_title", roles: ["owner", "ops", "reader"] },
+  { href: "/app/projects", key: "projects", roles: ["owner", "ops", "reader"] },
+  { href: "/app/flags", key: "flags", roles: ["owner", "ops", "reader"] },
+  { href: "/app/billing", key: "billing", roles: ["owner", "ops"] },
+  { href: "/app/onboarding", key: "onboarding", roles: ["owner", "ops"] },
+  { href: "/app/settings", key: "settings", roles: ["owner", "ops", "reader"] },
 ];
 
 export default function AppShell({
@@ -26,6 +28,7 @@ export default function AppShell({
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const role = typeof window !== "undefined" ? localStorage.getItem("pb_role") || "reader" : "reader";
+  const t = (locale === "ar" ? ar : en) as Record<string, string>;
   const links = ALL.filter((l) => l.roles.includes(role));
 
   function signOut() {
@@ -43,23 +46,23 @@ export default function AppShell({
       <nav className="shell-nav">
         {links.map((l) => (
           <a key={l.href} href={l.href} className={path === l.href ? "active" : ""}>
-            {l.label}
+            {t[l.key] || l.key}
           </a>
         ))}
       </nav>
       <div className="shell-actions">
         <span className="chip">{role}</span>
-        <button type="button" onClick={onTheme}>{theme === "dark" ? "Light" : "Dark"}</button>
+        <button type="button" onClick={onTheme}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>
         <button type="button" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>
-        <button type="button" onClick={signOut}>Sign out</button>
+        <button type="button" onClick={signOut}>{t.logout}</button>
         <button type="button" className="burger-app" onClick={() => setOpen((v) => !v)} aria-label="Menu">☰</button>
       </div>
       {open && (
         <div className="shell-drawer">
           {links.map((l) => (
-            <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
+            <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{t[l.key] || l.key}</a>
           ))}
-          <button type="button" onClick={signOut}>Sign out</button>
+          <button type="button" onClick={signOut}>{t.logout}</button>
         </div>
       )}
     </header>
