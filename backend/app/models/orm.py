@@ -197,6 +197,18 @@ class Flag(Base):
     share_revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class SharePack(Base):
+    __tablename__ = "share_packs"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    share_token: Mapped[str] = mapped_column(String(64), unique=True)
+    flag_ids: Mapped[list] = mapped_column(JSONB, default=list)
+    watermark: Mapped[str] = mapped_column(String(120), default="For coordination only")
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class PortalConnection(Base):
     __tablename__ = "portal_connections"
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uid)
