@@ -3,13 +3,17 @@ from __future__ import annotations
 from datetime import date
 
 from fastapi import APIRouter, Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import Principal, get_principal, require_write
 from app.config import settings
 from app.db import get_session
+from app.digest.emailer import email_configured
 from app.eval.harness import run_golden
+from app.models.orm import Project
 from app.services.assisted_ops import apply_edit, minutes_used
+from app.services.billing import billing_configured
 from app.services.usage import remaining, tokens_used_today
 
 router = APIRouter()
@@ -40,3 +44,22 @@ async def token_usage(principal: Principal = Depends(get_principal), session: As
     used = await tokens_used_today(session, principal.tenant_id)
     cap = settings.tenant_daily_token_cap
     return {"used": used, "remaining": remaining(used, cap), "cap": cap, "live_llm": settings.enable_live_llm}
+
+
+@router.get("/pilot/checklist")
+async def pilot_checklist(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
+    projects = (await session.execute(select(Project).where(Project.tenant_id == principal.tenant_id))).scalars().all()
+    https_ok = (settings.web_base_url or "").startswith("https://")
+    return {
+        "app_env": settings.app_env,
+        "items": [
+            {"id": "email", "ok": email_configured(), "label": "Postmark token (morning email SLA)"},
+            {"id": "cron", "ok": None, "label": "Morning cron armed (see docs/S23-production-email.md) — ops confirm"},
+            {"id": "stripe", "ok": billing_configured(), "label": "Stripe live (BILLING_STUB=false + keys)"},
+            {"id": "whatsapp", "ok": bool(settings.enable_whatsapp_push), "label": "WhatsApp optional — best-effort only"},
+            {"id": "forward", "ok": any(p.forward_address for p in projects), "label": "Project forward address"},
+            {"id": "https", "ok": https_ok or settings.app_env != "production", "label": "WEB_BASE_URL is https in production"},
+            {"id": "seed", "ok": settings.app_env != "production", "label": "Demo seed refused in production"},
+        ],
+        "forwards": [p.forward_address for p in projects if p.forward_address],
+    }
