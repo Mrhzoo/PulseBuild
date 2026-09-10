@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.models.orm import Project, Tenant
 
-HARD_STATUSES = frozenset({"active", "past_due"})
+HARD_STATUSES = frozenset({"active", "past_due", "trialing"})
 
 
 def stripe_live() -> bool:
