@@ -31,6 +31,7 @@ class DigestPayload(BaseModel):
     digest_id: str | None = None
     delivered_via: str = "web"
     locale: str = "en"
+    cues: list[str] = Field(default_factory=list)
 
 
 def _has_arabic(*parts: str) -> bool:
