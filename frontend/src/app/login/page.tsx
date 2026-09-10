@@ -34,7 +34,8 @@ export default function LoginPage() {
     const data = await res.json();
     localStorage.setItem("pb_token", data.access_token);
     localStorage.setItem("pb_role", data.role);
-    window.location.href = "/app";
+    const next = new URLSearchParams(window.location.search).get("next") || "/app";
+    window.location.href = next.startsWith("/") ? next : "/app";
   }
 
   return (
