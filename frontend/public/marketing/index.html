@@ -1,63 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PulseBuild — See the risk before it hits cash</title>
+  <title>PulseBuild</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmN1C3o8l+Xk4y4ZbR8sLqCge+iExMw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="video-wrap" aria-hidden="true">
-    <video id="bg" autoplay muted loop playsinline poster="">
-      <source src="https://d2v5dzokg4q2x.cloudfront.net/videos/landscape/large/construction-aerial.mp4" type="video/mp4" />
+    <video id="bg" autoplay muted loop playsinline>
+      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4" type="video/mp4" />
       <source src="https://videos.pexels.com/video-files/3773486/3773486-hd_1920_1080_25fps.mp4" type="video/mp4" />
     </video>
     <div class="veil"></div>
   </div>
 
   <header class="topbar">
-    <a class="logo" href="/" aria-label="PulseBuild">
-      <span class="logo-circle">PB</span>
-    </a>
+    <a class="logo" href="/" aria-label="PulseBuild"><span class="logo-circle">PB</span></a>
     <nav class="pill" id="nav-pill">
-      <a href="#home">Home</a>
-      <a href="#product">Product</a>
-      <a href="#cases">Case Studies</a>
-      <a href="#contact">Contact</a>
+      <a href="#home" data-i18n="nav_home">Home</a>
+      <a href="#product" data-i18n="nav_product">Product</a>
+      <a href="#cases" data-i18n="nav_cases">Case Studies</a>
+      <a href="#contact" data-i18n="nav_contact">Contact</a>
     </nav>
-    <a class="signin" href="/login">Sign in</a>
-    <button class="burger" id="burger" aria-label="Menu" type="button"><i class="fa-solid fa-bars"></i></button>
+    <div class="controls">
+      <button class="icon-btn" id="theme-btn" type="button" aria-label="Theme">Aa</button>
+      <button class="icon-btn" id="locale-btn" type="button" aria-label="Language">EN</button>
+      <a class="signin" href="/login" data-i18n="login">Sign in</a>
+      <button class="icon-btn burger" id="burger" type="button" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+    </div>
   </header>
 
   <main class="hero" id="home">
     <h1>
-      <span class="line">See the risk</span>
-      <span class="line">Before it hits cash</span>
+      <span class="line" data-i18n="hero_line1">See the risk</span>
+      <span class="line" data-i18n="hero_line2">Before it hits cash</span>
     </h1>
-    <p class="sub">Morning project-risk briefings for UAE subcontractors and suppliers.<br />Upload PDFs, forward email, get Act / Watch before margin slips.</p>
-    <div class="trust">Built for UAE construction SMEs</div>
-    <a class="cta" href="/login">Get Started</a>
+    <p class="sub" data-i18n-html="hero_sub">Morning project-risk briefings for UAE subcontractors and suppliers.<br />Upload PDFs, forward email, get Act / Watch before margin slips.</p>
+    <div class="trust" data-i18n="trust">Built for UAE construction SMEs</div>
+    <a class="cta" href="/login" data-i18n="get_started">Get Started</a>
   </main>
 
   <footer class="stats" id="product">
-    <div class="stat"><span class="ico">&lt;</span><strong>1</strong><em>Morning briefing</em></div>
-    <div class="stat"><span class="ico">%</span><strong>95</strong><em>Act evidence gate</em></div>
-    <div class="stat"><span class="ico">*</span><strong>24/7</strong><em>Watch while you sleep</em></div>
-    <div class="stat"><span class="ico">#</span><strong>AED</strong><em>UAE first</em></div>
+    <div class="stat"><span class="ico">&lt;</span><strong>1</strong><em data-i18n="stat_briefing">Morning briefing</em></div>
+    <div class="stat"><span class="ico">%</span><strong>95</strong><em data-i18n="stat_gate">Act evidence gate</em></div>
+    <div class="stat"><span class="ico">*</span><strong>24/7</strong><em data-i18n="stat_watch">Watch while you sleep</em></div>
+    <div class="stat"><span class="ico">#</span><strong>AED</strong><em data-i18n="stat_uae">UAE first</em></div>
   </footer>
 
   <div class="drawer" id="drawer">
-    <a href="#home">Home</a>
-    <a href="#product">Product</a>
-    <a href="#cases">Case Studies</a>
-    <a href="#contact">Contact</a>
-    <a href="/login">Sign in</a>
+    <a href="#home" data-i18n="nav_home">Home</a>
+    <a href="#product" data-i18n="nav_product">Product</a>
+    <a href="#cases" data-i18n="nav_cases">Case Studies</a>
+    <a href="#contact" data-i18n="nav_contact">Contact</a>
+    <a href="/login" data-i18n="login">Sign in</a>
   </div>
-
   <script src="./main.js"></script>
 </body>
 </html>

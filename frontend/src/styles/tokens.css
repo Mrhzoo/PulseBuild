@@ -1,0 +1,26 @@
+:root, [data-theme="dark"] {
+  --bg: #07080a;
+  --text: #f4f6f8;
+  --muted: rgba(244, 246, 248, 0.72);
+  --pill: rgba(10, 12, 16, 0.45);
+  --border: rgba(255, 255, 255, 0.16);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-display: "GeistPixel-Circle", "BubbledotICG-FinePos", Inter, sans-serif;
+  --btn-bg: #ffffff;
+  --btn-text: #111111;
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --header-bg: #0b1f33;
+}
+[data-theme="light"] {
+  --bg: #f7f3eb;
+  --text: #1a2330;
+  --muted: #5c6b7a;
+  --pill: rgba(255, 255, 255, 0.72);
+  --border: #d7d1c5;
+  --shadow: 0 8px 24px rgba(11, 31, 51, 0.08);
+  --btn-bg: #0b1f33;
+  --btn-text: #ffffff;
+  --card-bg: #ffffff;
+  --header-bg: #0b1f33;
+}
