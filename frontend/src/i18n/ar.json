@@ -97,5 +97,11 @@
   "theme_dark": "داكن",
   "login_title": "دخول إلى PulseBuild",
   "project_code": "الرمز",
-  "stripe_live": "سترايب حي"
+  "stripe_live": "سترايب حي",
+  "pack_create": "أنشئ حزمة تنسيق",
+  "pack_ready": "رابط الحزمة جاهز",
+  "pack_label": "حزمة تنسيق",
+  "pack_watermark": "للتنسيق فقط",
+  "inbound_title": "البريد الوارد",
+  "inbound_stub": "الوارد تجريبي. أرسل اختباراً بعد ربط Postmark."
 }
