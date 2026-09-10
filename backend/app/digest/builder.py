@@ -12,6 +12,15 @@ from app.digest.cues import cue_lines
 from app.digest.payload import DigestCard, DigestPayload, coaching_ask
 from app.models.orm import Digest, Document, Event, Finding, Project, Severity, Tenant
 
+_SEV = {"act": 0, "watch": 1, "low": 2}
+
+
+def _agent_name(finding) -> str:
+    agent = getattr(finding, "agent", None)
+    if agent is None:
+        return "unknown"
+    return agent.value if hasattr(agent, "value") else str(agent)
+
 
 def card_from_finding(finding: Finding, project_name: str) -> DigestCard | None:
     pointer = (finding.evidence_pointer or "").strip()
@@ -27,24 +36,25 @@ def card_from_finding(finding: Finding, project_name: str) -> DigestCard | None:
         evidence_snippet=finding.evidence_snippet,
         evidence_pointer=pointer,
         confidence=finding.confidence,
+        agent=_agent_name(finding),
     )
 
 
 def assemble_payload(*, tenant_name: str, for_date: date, findings: list[Finding], projects: list[Project], unassigned: int, last_data_received: str | None = None) -> DigestPayload:
     names = {p.id: p.name for p in projects}
-    cards: list[DigestCard] = []
-    seen_pointers: set[str] = set()
+    by_key: dict[tuple[str, str], DigestCard] = {}
     for finding in findings:
         if finding.dismissed:
             continue
         card = card_from_finding(finding, names.get(finding.project_id, ""))
         if not card:
             continue
-        key = card.evidence_pointer or card.id
-        if key in seen_pointers:
+        key = (card.agent or "unknown", card.evidence_pointer or card.id)
+        held = by_key.get(key)
+        if held and _SEV.get(held.severity, 9) <= _SEV.get(card.severity, 9):
             continue
-        seen_pointers.add(key)
-        cards.append(card)
+        by_key[key] = card
+    cards = list(by_key.values())
     act = [c for c in cards if c.severity == "act"][:5]
     watch = [c for c in cards if c.severity == "watch"]
     low = [c for c in cards if c.severity == "low"]
