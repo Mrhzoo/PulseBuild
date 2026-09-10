@@ -78,7 +78,11 @@ export default function ProjectsPage() {
   async function run(projectId: string) {
     const res = await fetch(`${API}/api/projects/${projectId}/run`, { method: "POST", headers: auth() });
     const data = await res.json();
-    setRunOut(`created: ${(data.created || []).join(", ") || "none"} · dropped: ${(data.dropped || []).join(", ") || "none"}`);
+    const created = data.created || [];
+    const updated = data.updated || [];
+    const dropped = data.dropped || [];
+    if (!created.length && !updated.length) setRunOut(t.no_new_findings);
+    else setRunOut(`${t.run_agents}: +${created.length} / ~${updated.length} / drop ${dropped.length}`);
   }
 
   return (
@@ -87,7 +91,7 @@ export default function ProjectsPage() {
       <p className="sub">{t.forward_tip}</p>
       {quota && <p className="card">{quota} <a href="/app/billing">{t.billing}</a></p>}
       {note && <p className="muted">{note}</p>}
-      {runOut && <p className="muted">{runOut} — <a href="/app">{t.open_digest}</a></p>}
+      {runOut && <p className="ask-banner">{runOut} — <a href="/app">{t.open_digest}</a></p>}
       {projects.length === 0 && (
         <p className="card">{t.empty_projects} <a href="/app/onboarding">{t.onboarding}</a></p>
       )}
