@@ -149,7 +149,7 @@ export default function DigestAppPage() {
           <div className="dash-toolbar">
             <button type="button" onClick={() => void sendBriefing()} disabled={sending}>{sending ? t.sending : t.send_briefing}</button>
             <button type="button" onClick={() => void load()}>{t.refresh}</button>
-            <a href="/flags">{t.open_flags}</a>
+            <a href="/app/flags">{t.open_flags}</a>
           </div>
         )}
         {sent && <p className="muted">{t.send_ok}: {sent}</p>}
