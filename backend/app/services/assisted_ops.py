@@ -13,7 +13,7 @@ from app.config import settings
 from app.models.orm import AssistedOpsEdit, Document, Finding
 from app.services.audit import write_audit
 
-ALLOWED_KINDS = frozenset({"reassign", "dismiss_finding", "fix_pointer", "rewrite_copy"})
+ALLOWED_KINDS = frozenset({"reassign", "dismiss_finding", "fix_pointer", "rewrite_copy", "ocr_ticket"})
 
 
 async def minutes_used(session: AsyncSession, tenant_id: UUID, day: date | None = None) -> int:
@@ -66,6 +66,10 @@ async def apply_edit(session: AsyncSession, *, tenant_id: UUID, actor_id: UUID, 
             raise HTTPException(404, "document")
         new_id = (after or {}).get("project_id")
         doc.project_id = UUID(new_id) if new_id else None
+    elif kind == "ocr_ticket":
+        doc = await session.get(Document, UUID(entity_id))
+        if not doc or doc.tenant_id != tenant_id:
+            raise HTTPException(404, "document")
     row = AssistedOpsEdit(tenant_id=tenant_id, actor_id=actor_id, kind=kind, entity_id=entity_id, minutes_spent=incoming, ticket=ticket, before=before, after=after)
     session.add(row)
     await session.flush()
