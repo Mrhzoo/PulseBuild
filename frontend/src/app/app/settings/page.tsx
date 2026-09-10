@@ -86,14 +86,10 @@ export default function SettingsPage() {
             {temp && <p className="ask-banner">{t.temp_password}: {temp}</p>}
           </>
         )}
-        {role === "owner" && (
-          <>
-            <p className="sub">{t.whatsapp_best_effort}</p>
-            <label htmlFor="wa">{t.save_whatsapp}</label>
-            <input id="wa" value={wa} onChange={(e) => setWa(e.target.value)} />
-            <button type="button" onClick={() => void saveWa()}>{t.save_whatsapp}</button>
-          </>
-        )}
+        <p className="sub">{t.whatsapp_best_effort}</p>
+        <label htmlFor="wa">{t.save_whatsapp}</label>
+        <input id="wa" value={wa} onChange={(e) => setWa(e.target.value)} />
+        <button type="button" onClick={() => void saveWa()}>{t.save_whatsapp}</button>
       </section>
       <details className="card" open>
         <summary>{t.meta_title}</summary>
