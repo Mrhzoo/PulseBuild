@@ -1,4 +1,7 @@
-"""Nightly briefing: agents → digest → email SLA → optional WhatsApp. From backend/: python -m scripts.send_morning_digests"""
+"""Morning briefing: agents → digest → email SLA → optional WhatsApp.
+From backend/: python -m scripts.send_morning_digests
+Schedule in Asia/Dubai for UAE pilots — see docs/S23-production-email.md
+"""
 
 from __future__ import annotations
 
@@ -45,12 +48,16 @@ async def run() -> None:
             recipients = await briefing_recipients(session, tenant.id)
             if not recipients:
                 continue
-            via = await send_digest_email(payload, recipients)
+            try:
+                via = await send_digest_email(payload, recipients)
+            except Exception:
+                log.exception("email failed tenant=%s — not marking sent", tenant.id)
+                continue
             delivered = "email+web" if via == "email" else via
             try:
                 numbers = await whatsapp_numbers(session, tenant.id)
                 wa = await notify_digest(payload, numbers)
-                if wa in {"whatsapp", "stub"}:
+                if wa == "whatsapp":
                     delivered = f"{delivered}+whatsapp"
             except Exception:
                 log.exception("whatsapp failed tenant=%s — email already sent", tenant.id)
