@@ -37,5 +37,14 @@
   "stat_briefing": "Morning briefing",
   "stat_gate": "Act evidence gate",
   "stat_watch": "Watch while you sleep",
-  "stat_uae": "UAE first"
+  "stat_uae": "UAE first",
+  "channel_promise": "Morning briefing by email.",
+  "section_act": "Act",
+  "section_watch": "Watch",
+  "refresh": "Refresh",
+  "sending": "Sending…",
+  "send_ok": "Briefing queued",
+  "send_failed": "Could not send briefing.",
+  "copy_share": "Copy share link",
+  "copied": "Copied"
 }

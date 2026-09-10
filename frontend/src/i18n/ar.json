@@ -37,5 +37,14 @@
   "stat_briefing": "إحاطة صباحية",
   "stat_gate": "شرط الدليل",
   "stat_watch": "مراقبة ليلاً",
-  "stat_uae": "الإمارات أولاً"
+  "stat_uae": "الإمارات أولاً",
+  "channel_promise": "الإحاطة الصباحية عبر البريد.",
+  "section_act": "إجراء",
+  "section_watch": "مراقبة",
+  "refresh": "حدّث",
+  "sending": "جارٍ الإرسال…",
+  "send_ok": "تمّت الطلب",
+  "send_failed": "تعذر إرسال الإحاطة.",
+  "copy_share": "نسخ رابط المشاركة",
+  "copied": "تم النسخ"
 }
