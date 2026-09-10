@@ -7,6 +7,16 @@ import ar from "../../../i18n/ar.json";
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 type Person = { user_id: string; email: string; name: string; role: string; whatsapp_e164: string | null };
 
+const META = [
+  "meta_step_app",
+  "meta_step_template",
+  "meta_step_phone",
+  "meta_step_token",
+  "meta_step_webhook",
+  "meta_step_enable",
+  "meta_step_session",
+];
+
 export default function SettingsPage() {
   const [locale, setLocale] = useState("en");
   const [theme, setTheme] = useState("dark");
@@ -70,7 +80,8 @@ export default function SettingsPage() {
         ))}
         {canInvite && (
           <>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="invite@company.ae" />
+            <label htmlFor="invite-email">{t.email}</label>
+            <input id="invite-email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <button type="button" onClick={() => void invite()}>{t.invite_reader}</button>
             {temp && <p className="ask-banner">{t.temp_password}: {temp}</p>}
           </>
@@ -78,14 +89,19 @@ export default function SettingsPage() {
         {role === "owner" && (
           <>
             <p className="sub">{t.whatsapp_best_effort}</p>
-            <input value={wa} onChange={(e) => setWa(e.target.value)} placeholder="+9715" />
-            <button type="button" onClick={() => void saveWa()}>WhatsApp</button>
+            <label htmlFor="wa">{t.save_whatsapp}</label>
+            <input id="wa" value={wa} onChange={(e) => setWa(e.target.value)} />
+            <button type="button" onClick={() => void saveWa()}>{t.save_whatsapp}</button>
           </>
         )}
       </section>
-      <details className="card">
-        <summary>Meta WhatsApp</summary>
-        <p className="muted">Checklist only — see docs/S7-meta-whatsapp.md. Not marked connected unless the API says so.</p>
+      <details className="card" open>
+        <summary>{t.meta_title}</summary>
+        <p className="muted">{t.meta_manual}</p>
+        <ul>
+          {META.map((k) => <li key={k}>{t[k]} — {t.meta_unchecked}</li>)}
+        </ul>
+        <p className="sub">{t.whatsapp_best_effort}</p>
       </details>
     </article>
   );

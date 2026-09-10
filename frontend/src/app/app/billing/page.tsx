@@ -13,10 +13,13 @@ export default function AppBillingPage() {
   const owner = role === "owner";
   const [status, setStatus] = useState<Record<string, unknown> | null>(null);
   const [flash, setFlash] = useState("");
+  const [err, setErr] = useState(false);
 
   async function load() {
+    setErr(false);
     const res = await fetch(`${API}/api/billing/status`, { headers: { Authorization: `Bearer ${localStorage.getItem("pb_token") || ""}` } });
     if (res.ok) setStatus(await res.json());
+    else setErr(true);
   }
   useEffect(() => {
     setLocale(localStorage.getItem("pb_locale") || "en");
@@ -43,6 +46,7 @@ export default function AppBillingPage() {
       <h1>{t.billing}</h1>
       <p className="sub">{t.whatsapp_best_effort}</p>
       {flash && <p className="ask-banner">{flash === "canceled" ? t.billing_canceled : t.billing_ok}</p>}
+      {err && <p className="card">{t.billing_retry} <button type="button" onClick={() => void load()}>{t.refresh}</button></p>}
       {status && (
         <div className="dash-card">
           <p>{String(status.plan)} · {String(status.billing_status)} · AED</p>
