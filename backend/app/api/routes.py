@@ -8,16 +8,15 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agents.graph import run_v1_graph
-from app.agents.snapshot import build_snapshot
 from app.api.deps import Principal, get_principal, require_write
 from app.db import get_session
 from app.ingest.pipeline import ingest_document, sniff_parser
-from app.models.orm import AgentName, Document, Event, Finding, Membership, Project, Role, Severity, Tenant, User
+from app.models.orm import Document, Event, Membership, Project, Role, Tenant, User
 from app.security import hash_password
 from app.services.audit import write_audit
 from app.services.billing import enforce_project_quota
 from app.services.crypto_store import write_encrypted
+from app.services.findings_run import run_project_agents
 from app.services.matching import match_inbound
 from app.services.tenancy import require_project_for_tenant
 
@@ -128,21 +127,9 @@ async def run_agents(project_id: UUID, principal: Principal = Depends(require_wr
     project = await session.get(Project, project_id)
     if not project or project.tenant_id != principal.tenant_id:
         raise HTTPException(404, "project")
-    docs = (await session.execute(select(Document).where(Document.tenant_id == principal.tenant_id, Document.project_id == project_id))).scalars().all()
-    events = (await session.execute(select(Event).where(Event.tenant_id == principal.tenant_id, Event.project_id == project_id))).scalars().all()
-    result = run_v1_graph(build_snapshot(project, list(events), list(docs)))
-    created = []
-    skipped = list(result.dropped)
-    agent_map = {"schedule": AgentName.SCHEDULE, "cashflow": AgentName.CASHFLOW, "change_order": AgentName.CHANGE_ORDER, "compliance": AgentName.COMPLIANCE}
-    for card in result.cards:
-        if card.severity == "act" and not card.evidence.pointer.strip():
-            skipped.append(f"{card.title}:act_without_pointer")
-            continue
-        source = card.source_agents[0] if card.source_agents else "orchestrator"
-        session.add(Finding(tenant_id=principal.tenant_id, project_id=project_id, agent=agent_map.get(source, AgentName.ORCHESTRATOR), severity=Severity(card.severity), title=card.title, why_it_hits_us=card.why_it_hits_us, evidence_snippet=card.evidence.snippet, evidence_pointer=card.evidence.pointer, confidence=card.confidence, rationale=card.rationale))
-        created.append(card.title)
+    out = await run_project_agents(session, principal.tenant_id, project)
     await session.commit()
-    return {"created": created, "dropped": skipped}
+    return out
 
 
 @router.post("/people/invite")
