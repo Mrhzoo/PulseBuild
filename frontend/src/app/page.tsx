@@ -40,7 +40,10 @@ function RiskCard({ card, canWrite }: { card: Card; canWrite: boolean }) {
       headers: { Authorization: `Bearer ${token()}`, "Content-Type": "application/json" },
       body: JSON.stringify({ note }),
     });
-    if (res.ok) setShare((await res.json()).share_url || `${window.location.origin}/share/${(await res.clone().json().catch(() => ({}))).share_token || ""}`);
+    if (res.ok) {
+      const data = await res.json();
+      setShare(data.share_url || data.share_token || "ok");
+    }
   }
 
   async function dismiss() {
