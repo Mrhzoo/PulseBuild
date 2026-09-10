@@ -86,5 +86,9 @@
   "meta_step_token": "Permanent token",
   "meta_step_webhook": "Verify webhook",
   "meta_step_enable": "ENABLE_WHATSAPP_PUSH only after approval",
-  "meta_step_session": "Session text off in production"
+  "meta_step_session": "Session text off in production",
+  "last_data": "Last file",
+  "step_n": "Step {n} / 4",
+  "no_new_findings": "No new findings — same open cards updated or nothing to add.",
+  "billing_stub_entitlement": "Stub checkout — no live charge and no quota change until a webhook is applied."
 }
