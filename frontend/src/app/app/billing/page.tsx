@@ -14,6 +14,7 @@ export default function AppBillingPage() {
   const [status, setStatus] = useState<Record<string, unknown> | null>(null);
   const [flash, setFlash] = useState("");
   const [err, setErr] = useState(false);
+  const [actionErr, setActionErr] = useState("");
 
   async function load() {
     setErr(false);
@@ -32,14 +33,25 @@ export default function AppBillingPage() {
   }, []);
 
   async function post(path: string, body: object) {
+    setActionErr("");
     const res = await fetch(`${API}${path}`, {
       method: "POST",
       headers: { Authorization: `Bearer ${localStorage.getItem("pb_token") || ""}`, "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 503) {
+      setActionErr(t.billing_not_configured);
+      return;
+    }
+    if (!res.ok) {
+      setActionErr(t.billing_retry);
+      return;
+    }
     if (data.url) window.location.href = data.url.replace("/billing", "/app/billing");
   }
+
+  const notConfigured = Boolean(status?.billing_not_configured);
 
   return (
     <article>
@@ -47,13 +59,15 @@ export default function AppBillingPage() {
       <p className="sub">{t.whatsapp_best_effort}</p>
       {flash && <p className="ask-banner">{flash === "canceled" ? t.billing_canceled : flash === "stub" ? t.billing_stub_entitlement : t.billing_ok}</p>}
       {err && <p className="card">{t.billing_retry} <button type="button" onClick={() => void load()}>{t.refresh}</button></p>}
+      {actionErr && <p className="card">{actionErr}</p>}
+      {notConfigured && <p className="ask-banner">{t.billing_not_configured}</p>}
       {status && (
         <div className="dash-card">
           <p>{String(status.plan)} · {String(status.billing_status)} · AED</p>
           <p>{t.projects_quota}: {String(status.projects_used)} / {String(status.project_quota)}</p>
           {status.quota_hit ? <p className="ask-banner">{t.quota_full}</p> : null}
-          {status.stub ? <p className="muted">{t.billing_stub_entitlement}</p> : <p className="muted">{t.stripe_live}</p>}
-          {owner && (
+          {status.stub ? <p className="muted">{t.billing_stub_entitlement}</p> : status.stripe_live ? <p className="muted">{t.stripe_live}</p> : null}
+          {owner && !notConfigured && (
             <div className="dash-actions">
               <button type="button" onClick={() => void post("/api/billing/checkout", {})}>{t.upgrade}</button>
               <button type="button" onClick={() => void post("/api/billing/checkout", { addon: true })}>{t.project_pack}</button>
