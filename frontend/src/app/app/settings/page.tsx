@@ -27,13 +27,14 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [temp, setTemp] = useState("");
   const [wa, setWa] = useState("");
+  const [inbound, setInbound] = useState<Record<string, any> | null>(null);
 
   useEffect(() => {
     setLocale(localStorage.getItem("pb_locale") || "en");
     setTheme(localStorage.getItem("pb_theme") || "dark");
-    void fetch(`${API}/api/people`, { headers: { Authorization: `Bearer ${localStorage.getItem("pb_token") || ""}` } })
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setPeople);
+    const headers = { Authorization: `Bearer ${localStorage.getItem("pb_token") || ""}` };
+    void fetch(`${API}/api/people`, { headers }).then((r) => (r.ok ? r.json() : [])).then(setPeople);
+    void fetch(`${API}/api/inbound/status`, { headers }).then((r) => (r.ok ? r.json() : null)).then(setInbound);
   }, []);
 
   function persistTheme(next: string) {
@@ -72,6 +73,14 @@ export default function SettingsPage() {
         <h2>{t.prefs}</h2>
         <button type="button" onClick={() => persistTheme(theme === "dark" ? "light" : "dark")}>{theme}</button>{" "}
         <button type="button" onClick={() => persistLocale(locale === "en" ? "ar" : "en")}>{locale}</button>
+      </section>
+      <section className="card">
+        <h2>{t.inbound_title}</h2>
+        <p className="muted">{inbound?.note || t.inbound_stub}</p>
+        {(inbound?.forwards || []).map((f: { project: string; forward_address: string }) => (
+          <p key={f.forward_address} className="ev">{f.project}: {f.forward_address}</p>
+        ))}
+        {inbound?.last_inbound && <p className="muted">{inbound.last_inbound.filename} · {inbound.last_inbound.parse_status}</p>}
       </section>
       <section className="card">
         <h2>{t.people}</h2>
