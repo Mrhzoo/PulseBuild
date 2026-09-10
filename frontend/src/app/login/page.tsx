@@ -21,7 +21,7 @@ export default function LoginPage() {
   useEffect(() => {
     setLocale(localStorage.getItem("pb_locale") || "en");
   }, []);
-  const t = locale === "ar" ? ar : en;
+  const t = (locale === "ar" ? ar : en) as Record<string, string>;
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div className="login-veil" />
       <form className="login-card" onSubmit={(e) => void onSubmit(e)}>
         <p className="login-kicker"><a href="/">PulseBuild</a></p>
-        <h1 className="login-title">Sign in to PulseBuild</h1>
+        <h1 className="login-title">{t.login_title}</h1>
         <p className="sub">{t.whatsapp_best_effort}</p>
         <label>{t.email}</label>
         <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="username" />
@@ -58,7 +58,7 @@ export default function LoginPage() {
         <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required autoComplete="current-password" />
         <button type="submit">{t.login}</button>
         {error && <p className="ev">{error}</p>}
-        <p className="muted"><a href="/">← Home</a></p>
+        <p className="muted"><a href="/">{t.nav_home}</a></p>
       </form>
     </div>
   );
