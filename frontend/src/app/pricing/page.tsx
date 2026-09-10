@@ -5,7 +5,7 @@ const PACK = process.env.NEXT_PUBLIC_PRICE_PACK || "AED 400 / project / month";
 
 export default function PricingPage() {
   const loggedIn = typeof window !== "undefined" && !!localStorage.getItem("pb_token");
-  const cta = loggedIn ? "/billing" : "/login?next=/billing";
+  const cta = loggedIn ? "/app/billing" : "/login?next=/app/billing";
   return (
     <article className="mkt-page">
       <h1>Pricing</h1>
