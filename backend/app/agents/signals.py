@@ -9,7 +9,7 @@ from typing import Any
 from app.schemas.agents import ProjectSnapshot
 
 DATEISH = re.compile(
-    r"(\b\d{1,2}\s*(day|days|week|weeks|شهر|يوم|أسبوع)\b|\bأسبوعين\b|\b20\d{2}[-/]\d{1,2}[-/]\d{1,2}\b|"
+    r"(\b\d{1,2}\s*(day|days|week|weeks|شهر|يوم|أسبوع)\b|\b(two|three|four)\s+(days|weeks)\b|\bأسبوعين\b|\b20\d{2}[-/]\d{1,2}[-/]\d{1,2}\b|"
     r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{1,2}\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b|"
     r"\b7[-–]14\b|\bnext\s+\d+)",
     re.I,
