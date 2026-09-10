@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     default_project_quota: int = 3
 
     auto_run_agents_on_upload: bool = True
+    enable_ocr: bool = False
 
 
 settings = Settings()
