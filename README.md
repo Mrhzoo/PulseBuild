@@ -2,9 +2,9 @@
 
 SME project-risk intelligence for UAE construction first. Email is the SLA channel.
 
-- S0–S7 closed
-- **S8** remaining product on `main` (human auth, WhatsApp self-update, i18n parity)
-- Next: visual rebuild (S9+) — not started
+- S0–S8 closed
+- **S9** marketing landing on `main` (`/` static, digest at `/app`)
+- Next: S10 light/dark — not started
 
 ## Local demo
 
@@ -12,11 +12,11 @@ SME project-risk intelligence for UAE construction first. Email is the SLA chann
 docker compose up -d
 cd backend && alembic upgrade head && python -m scripts.seed
 uvicorn app.main:app --reload --port 8000
+cd ../frontend && npm run dev
 ```
 
-Seed logins:
+- Landing: http://localhost:3000/
+- Digest: http://localhost:3000/app
+- Login: http://localhost:3000/login
 
-- Owner `owner@demo.pulsebuild.local` / `demo-owner-pass`
-- Reader `reader@demo.pulsebuild.local` / `demo-reader-pass`
-
-Open `/login`, then today’s digest. See `docs/S8-auth.md`.
+Seed: `owner@demo.pulsebuild.local` / `demo-owner-pass`
