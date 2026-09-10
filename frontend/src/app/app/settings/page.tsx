@@ -28,6 +28,7 @@ export default function SettingsPage() {
   const [temp, setTemp] = useState("");
   const [wa, setWa] = useState("");
   const [inbound, setInbound] = useState<Record<string, any> | null>(null);
+  const [pilot, setPilot] = useState<Record<string, any> | null>(null);
 
   useEffect(() => {
     setLocale(localStorage.getItem("pb_locale") || "en");
@@ -35,6 +36,7 @@ export default function SettingsPage() {
     const headers = { Authorization: `Bearer ${localStorage.getItem("pb_token") || ""}` };
     void fetch(`${API}/api/people`, { headers }).then((r) => (r.ok ? r.json() : [])).then(setPeople);
     void fetch(`${API}/api/inbound/status`, { headers }).then((r) => (r.ok ? r.json() : null)).then(setInbound);
+    void fetch(`${API}/api/pilot/checklist`, { headers }).then((r) => (r.ok ? r.json() : null)).then(setPilot);
   }, []);
 
   function persistTheme(next: string) {
@@ -66,6 +68,12 @@ export default function SettingsPage() {
     });
   }
 
+  function mark(ok: boolean | null) {
+    if (ok === true) return "✓";
+    if (ok === false) return "—";
+    return "?";
+  }
+
   return (
     <article>
       <h1>{t.settings}</h1>
@@ -73,6 +81,13 @@ export default function SettingsPage() {
         <h2>{t.prefs}</h2>
         <button type="button" onClick={() => persistTheme(theme === "dark" ? "light" : "dark")}>{theme}</button>{" "}
         <button type="button" onClick={() => persistLocale(locale === "en" ? "ar" : "en")}>{locale}</button>
+      </section>
+      <section className="card">
+        <h2>{t.pilot_checklist}</h2>
+        <p className="muted">{t.pilot_checklist_sub}</p>
+        {(pilot?.items || []).map((item: { id: string; label: string; ok: boolean | null }) => (
+          <p key={item.id} className="ev">{mark(item.ok)} {item.label}</p>
+        ))}
       </section>
       <section className="card">
         <h2>{t.inbound_title}</h2>
