@@ -14,6 +14,7 @@ type FlagRow = {
   created_at: string | null;
   share_url: string | null;
   share_revoked: boolean;
+  pack?: boolean;
 };
 
 function token() {
@@ -28,6 +29,7 @@ export default function FlagsWorkspace() {
   const [rows, setRows] = useState<FlagRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState("");
+  const [packUrl, setPackUrl] = useState("");
 
   async function load() {
     const res = await fetch(`${API}/api/flags`, { headers: { Authorization: `Bearer ${token()}` } });
@@ -55,11 +57,21 @@ export default function FlagsWorkspace() {
     });
     void load();
   }
+  async function pack() {
+    const res = await fetch(`${API}/api/flags/pack`, { method: "POST", headers: { Authorization: `Bearer ${token()}` } });
+    const data = await res.json();
+    if (res.ok) {
+      setPackUrl(data.share_url || "");
+      void load();
+    }
+  }
 
   return (
     <article>
       <h1>{t.flags_title}</h1>
       <p className="sub">{t.flags_sub}</p>
+      {canWrite && <p><button type="button" onClick={() => void pack()}>{t.pack_create}</button></p>}
+      {packUrl && <p className="ask-banner">{t.pack_ready} <button type="button" onClick={() => { void navigator.clipboard.writeText(packUrl); setCopied("pack"); }}>{copied === "pack" ? t.copied : t.copy_share}</button></p>}
       {error && <div className="card">{error}</div>}
       {rows.length === 0 && (
         <div className="card">{t.flags_empty} <a href="/app">{t.open_digest}</a></div>
@@ -67,12 +79,12 @@ export default function FlagsWorkspace() {
       {rows.map((row) => (
         <article className="dash-card act" key={row.id}>
           <div className="dash-meta">
-            <span className="sev-pill">{row.project_name}</span>
+            <span className="sev-pill">{row.pack ? t.pack_label : row.project_name}</span>
             <span className="muted">{row.created_at}</span>
             {row.share_revoked && <span className="chip">{t.share_revoked}</span>}
           </div>
-          <h3>{row.title}</h3>
-          <p className="why">{row.note}</p>
+          <h3>{row.pack ? t.pack_label : row.title}</h3>
+          <p className="why">{row.pack ? t.pack_watermark : row.note}</p>
           <div className="dash-actions">
             {row.share_url && (
               <button type="button" onClick={() => { void navigator.clipboard.writeText(row.share_url || ""); setCopied(row.id); }}>
