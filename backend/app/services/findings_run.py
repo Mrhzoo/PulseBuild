@@ -20,7 +20,7 @@ AGENT_MAP = {
     "compliance": AgentName.COMPLIANCE,
 }
 
-SKIP_PARSE = {"needs_better_file", "failed", "pending"}
+SKIP_PARSE = {"needs_better_file", "failed", "pending", "needs_ocr"}
 
 
 def finding_key(agent: str, pointer: str) -> tuple[str, str]:
