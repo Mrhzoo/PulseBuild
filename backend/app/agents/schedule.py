@@ -13,14 +13,17 @@ def run_schedule(snapshot: ProjectSnapshot) -> list[AgentFinding]:
     strong = has_date_window(hit.text)
     window = echoed_date_window(hit.text)
     activity = echoed_activity(hit.text)
+    clip = " ".join(hit.text.split()[:6]).rstrip(".,;")
     if activity and window:
         title = f"Programme slip on {activity} ({window})"
     elif window:
         title = f"Programme delayed {window}"
     elif activity:
         title = f"Programme movement on {activity}"
+    elif clip:
+        title = f"Programme note: {clip}"
     else:
-        title = "Programme movement on this project"
+        title = "Programme movement named in a file"
     if activity and window:
         why = f"{activity} is named with a {window} movement in a project file. Check whether your crew window moved."
     elif strong:
