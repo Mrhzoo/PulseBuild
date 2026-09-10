@@ -60,5 +60,18 @@
   "revoke_share": "إلغاء المشاركة",
   "dismiss_flag": "إغلاق العلامة",
   "share_revoked": "ملغاة",
-  "share_unavailable": "الرابط غير متاح"
+  "share_unavailable": "الرابط غير متاح",
+  "billing_stub": "دفع تجريبي — بلا رسم حي",
+  "billing_ok": "عاد الدفع.",
+  "billing_canceled": "ألغي الدفع.",
+  "project_pack": "+حزمة مشاريع",
+  "customer_portal": "بوابة العميل",
+  "onboarding_done": "أنت جاهز.",
+  "temp_password": "كلمة موقتة (تظهر مرة)",
+  "skip": "تخطّ",
+  "save_continue": "حفظ وامض",
+  "finish": "إنهاء",
+  "settings": "الإعدادات",
+  "prefs": "التفضيلات",
+  "people": "الأشخاص"
 }
