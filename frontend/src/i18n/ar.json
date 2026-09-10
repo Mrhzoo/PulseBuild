@@ -70,6 +70,7 @@
   "billing_stub": "دفع تجريبي — بلا رسم حي",
   "billing_ok": "عاد الدفع.",
   "billing_canceled": "ألغي الدفع.",
+  "billing_not_configured": "الفوترة غير مضبوطة. ضع مفاتيح سترايب أو أبق BILLING_STUB للعرض المحلي.",
   "project_pack": "+حزمة مشاريع",
   "customer_portal": "بوابة العميل",
   "onboarding_done": "أنت جاهز.",
