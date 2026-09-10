@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import "./globals.css";
+import AppShell from "../components/AppShell";
+import AuthGuard from "../components/AuthGuard";
 
 function applyDom(theme: string, locale: string) {
   document.documentElement.dataset.theme = theme;
@@ -13,8 +15,12 @@ function applyDom(theme: string, locale: string) {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const marketing = pathname === "/";
+  const login = pathname === "/login";
+  const share = pathname.startsWith("/share");
+  const appChrome = !marketing && !login && !share;
   const [locale, setLocale] = useState("en");
   const [theme, setTheme] = useState("dark");
+
   useEffect(() => {
     const loc = localStorage.getItem("pb_locale") || "en";
     const th = localStorage.getItem("pb_theme") || "dark";
@@ -22,38 +28,47 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     setTheme(th);
     applyDom(th, loc);
   }, []);
-  function toggleLocale() {
-    const next = locale === "ar" ? "en" : "ar";
-    localStorage.setItem("pb_locale", next);
-    setLocale(next);
-    applyDom(theme, next);
-  }
-  function toggleTheme() {
-    const next = theme === "dark" ? "light" : "dark";
-    localStorage.setItem("pb_theme", next);
-    setTheme(next);
-    applyDom(next, locale);
-  }
+
   return (
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-theme={theme}>
       <body>
-        {!marketing && (
-          <header className="top">
-            <strong>PULSEBUILD</strong>
-            <span className="muted">Morning briefing by email</span>
-            <nav>
-              <a href="/">Home</a>{" "}
-              <a href="/app">Digest</a>{" "}
-              <a href="/onboarding">Start</a>{" "}
-              <a href="/billing">Billing</a>{" "}
-              <a href="/flags">Flags</a>{" "}
-              <a href="/login">Sign in</a>{" "}
-              <button type="button" onClick={toggleTheme}>{theme === "dark" ? "Light" : "Dark"}</button>{" "}
-              <button type="button" onClick={toggleLocale}>{locale === "ar" ? "EN" : "ع"}</button>
-            </nav>
-          </header>
+        {appChrome && (
+          <AppShell
+            theme={theme}
+            locale={locale}
+            onTheme={() => {
+              const next = theme === "dark" ? "light" : "dark";
+              localStorage.setItem("pb_theme", next);
+              setTheme(next);
+              applyDom(next, locale);
+            }}
+            onLocale={() => {
+              const next = locale === "ar" ? "en" : "ar";
+              localStorage.setItem("pb_locale", next);
+              setLocale(next);
+              applyDom(theme, next);
+            }}
+          />
         )}
-        <main style={marketing ? { margin: 0, padding: 0, maxWidth: "none" } : undefined}>{children}</main>
+        {login && (
+          <div className="login-tools">
+            <button type="button" onClick={() => {
+              const next = theme === "dark" ? "light" : "dark";
+              localStorage.setItem("pb_theme", next);
+              setTheme(next);
+              applyDom(next, locale);
+            }}>{theme === "dark" ? "Light" : "Dark"}</button>
+            <button type="button" onClick={() => {
+              const next = locale === "ar" ? "en" : "ar";
+              localStorage.setItem("pb_locale", next);
+              setLocale(next);
+              applyDom(theme, next);
+            }}>{locale === "ar" ? "EN" : "ع"}</button>
+          </div>
+        )}
+        <AuthGuard>
+          <main className={marketing || login ? "flush" : undefined}>{children}</main>
+        </AuthGuard>
       </body>
     </html>
   );
