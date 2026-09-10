@@ -14,10 +14,20 @@ from app.api.v15_routes import router as v15_router
 from app.api.whatsapp_webhook import router as whatsapp_router
 from app.config import settings
 
+
+def cors_origins() -> list[str]:
+    origins = {
+        (settings.web_base_url or "").rstrip("/"),
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    }
+    return [o for o in origins if o]
+
+
 app = FastAPI(title="PulseBuild", version="0.1.8")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.web_base_url, "http://localhost:3000"],
+    allow_origins=cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

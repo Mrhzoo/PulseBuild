@@ -1,8 +1,9 @@
-"""Nightly briefing sender. From backend/: python -m scripts.send_morning_digests"""
+"""Nightly briefing: run agents → build digest → email. From backend/: python -m scripts.send_morning_digests"""
 
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import date
 
 from sqlalchemy import select
@@ -11,14 +12,34 @@ from app.db import SessionLocal
 from app.digest.builder import build_digest, persist_digest
 from app.digest.emailer import send_digest_email
 from app.digest.recipients import briefing_recipients
-from app.models.orm import Tenant
+from app.models.orm import Document, Event, Project, Tenant
 from app.services.audit import write_audit
+from app.services.findings_run import run_project_agents
+
+log = logging.getLogger("pulsebuild.morning")
+
+
+async def _project_has_material(session, tenant_id, project_id) -> bool:
+    docs = (await session.execute(select(Document.id).where(Document.tenant_id == tenant_id, Document.project_id == project_id))).first()
+    if docs:
+        return True
+    events = (await session.execute(select(Event.id).where(Event.tenant_id == tenant_id, Event.project_id == project_id))).first()
+    return bool(events)
 
 
 async def run() -> None:
     async with SessionLocal() as session:
         tenants = (await session.execute(select(Tenant))).scalars().all()
         for tenant in tenants:
+            projects = (await session.execute(select(Project).where(Project.tenant_id == tenant.id))).scalars().all()
+            for project in projects:
+                try:
+                    if not await _project_has_material(session, tenant.id, project.id):
+                        continue
+                    await run_project_agents(session, tenant.id, project)
+                except Exception:
+                    log.exception("agents failed tenant=%s project=%s", tenant.id, project.id)
+                    continue
             payload = await build_digest(session, tenant.id, date.today())
             recipients = await briefing_recipients(session, tenant.id)
             if not recipients:
@@ -30,4 +51,5 @@ async def run() -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     asyncio.run(run())

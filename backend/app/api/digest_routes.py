@@ -20,8 +20,6 @@ router = APIRouter()
 @router.get("/digest/today")
 async def digest_today(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
     payload = await build_digest(session, principal.tenant_id, date.today())
-    await persist_digest(session, principal.tenant_id, payload, delivered_via="web")
-    await session.commit()
     return payload.model_dump()
 
 
