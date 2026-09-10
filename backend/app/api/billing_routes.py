@@ -35,16 +35,17 @@ async def billing_checkout(payload: dict | None = None, principal: Principal = D
         raise HTTPException(404, "tenant")
     addon = bool((payload or {}).get("addon"))
     price = settings.stripe_price_project_addon_aed if addon else settings.stripe_price_pilot_aed
+    dest = f"{settings.web_base_url}/app/billing"
     if not stripe_live():
         fake = f"cs_stub_{uuid4().hex[:12]}"
         folder = Path(settings.local_upload_dir).resolve().parent / "billing"
         folder.mkdir(parents=True, exist_ok=True)
         (folder / f"{fake}.txt").write_text(f"tenant={tenant.id} addon={addon}\n", encoding="utf-8")
-        return {"url": f"{settings.web_base_url}/billing?session={fake}", "mode": "stub", "session_id": fake}
+        return {"url": f"{dest}?session={fake}", "mode": "stub", "session_id": fake}
     body = {
         "mode": "subscription",
-        "success_url": f"{settings.web_base_url}/billing?ok=1",
-        "cancel_url": f"{settings.web_base_url}/billing?canceled=1",
+        "success_url": f"{dest}?ok=1",
+        "cancel_url": f"{dest}?canceled=1",
         "line_items[0][price]": price,
         "line_items[0][quantity]": "1",
         "client_reference_id": str(tenant.id),
@@ -64,10 +65,11 @@ async def billing_portal(principal: Principal = Depends(require_owner), session:
     tenant = await session.get(Tenant, principal.tenant_id)
     if not tenant:
         raise HTTPException(404, "tenant")
+    dest = f"{settings.web_base_url}/app/billing"
     if not stripe_live() or not getattr(tenant, "stripe_customer_id", None):
-        return {"url": f"{settings.web_base_url}/billing?portal=stub", "mode": "stub"}
+        return {"url": f"{dest}?portal=stub", "mode": "stub"}
     async with httpx.AsyncClient(timeout=20) as client:
-        response = await client.post("https://api.stripe.com/v1/billing_portal/sessions", data={"customer": tenant.stripe_customer_id, "return_url": f"{settings.web_base_url}/billing"}, auth=(settings.stripe_secret_key, ""))
+        response = await client.post("https://api.stripe.com/v1/billing_portal/sessions", data={"customer": tenant.stripe_customer_id, "return_url": dest}, auth=(settings.stripe_secret_key, ""))
         response.raise_for_status()
         return {"url": response.json().get("url"), "mode": "live"}
 
