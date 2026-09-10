@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     mail_from: str = "briefing@pulsebuild.local"
     file_encryption_key: str = ""
     local_upload_dir: str = "./data/uploads"
+    email_stub: bool = False
 
     enable_whatsapp_push: bool = False
     whatsapp_token: str = ""
