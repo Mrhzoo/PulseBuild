@@ -52,5 +52,13 @@
   "unassigned": "Unassigned",
   "reassign": "Reassign to project",
   "run_agents": "Run agents",
-  "open_digest": "Open today’s digest"
+  "open_digest": "Open today’s digest",
+  "flags_title": "Open flags",
+  "flags_sub": "Items marked this affects us. Share is a secret link — revoke anytime.",
+  "flags_empty": "No open flags.",
+  "flags_load_error": "Could not load flags.",
+  "revoke_share": "Revoke share",
+  "dismiss_flag": "Dismiss flag",
+  "share_revoked": "Revoked",
+  "share_unavailable": "Link unavailable"
 }

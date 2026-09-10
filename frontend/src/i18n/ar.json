@@ -52,5 +52,13 @@
   "unassigned": "غير معيّن",
   "reassign": "نقل إلى مشروع",
   "run_agents": "شغّل الوكلاء",
-  "open_digest": "افتح ملخص اليوم"
+  "open_digest": "افتح ملخص اليوم",
+  "flags_title": "العلامات المفتوحة",
+  "flags_sub": "بنود يؤثر علينا. الرابط سري — يمكن إلغاؤه.",
+  "flags_empty": "لا علامات مفتوحة.",
+  "flags_load_error": "تعذر تحميل العلامات.",
+  "revoke_share": "إلغاء المشاركة",
+  "dismiss_flag": "إغلاق العلامة",
+  "share_revoked": "ملغاة",
+  "share_unavailable": "الرابط غير متاح"
 }
