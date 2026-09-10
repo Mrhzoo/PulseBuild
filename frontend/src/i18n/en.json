@@ -29,6 +29,7 @@
   "nav_product": "Product",
   "nav_cases": "Case Studies",
   "nav_contact": "Contact",
+  "nav_pricing": "Pricing",
   "get_started": "Get Started",
   "hero_line1": "See the risk",
   "hero_line2": "Before it hits cash",
@@ -36,7 +37,7 @@
   "trust": "Built for UAE construction SMEs",
   "stat_briefing": "Morning briefing",
   "stat_gate": "Act evidence gate",
-  "stat_watch": "Watch while you sleep",
+  "stat_watch": "Email is the morning SLA",
   "stat_uae": "UAE first",
   "channel_promise": "Morning briefing by email.",
   "section_act": "Act",
@@ -61,6 +62,7 @@
   "dismiss_flag": "Dismiss flag",
   "share_revoked": "Revoked",
   "share_unavailable": "Link unavailable",
+  "share_proof": "Shared from PulseBuild · proof link, not a live portal.",
   "billing_stub": "Stub checkout — no live charge",
   "billing_ok": "Checkout returned.",
   "billing_canceled": "Checkout canceled.",
@@ -90,5 +92,10 @@
   "last_data": "Last file",
   "step_n": "Step {n} / 4",
   "no_new_findings": "No new findings — same open cards updated or nothing to add.",
-  "billing_stub_entitlement": "Stub checkout — no live charge and no quota change until a webhook is applied."
+  "billing_stub_entitlement": "Stub checkout — no live charge and no quota change until a webhook is applied.",
+  "theme_light": "Light",
+  "theme_dark": "Dark",
+  "login_title": "Sign in to PulseBuild",
+  "project_code": "Code",
+  "stripe_live": "Stripe live"
 }
