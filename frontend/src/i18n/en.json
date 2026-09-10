@@ -24,5 +24,18 @@
   "errors_unavailable": "Digest is unavailable. No invented risks are shown.",
   "sign_in_link": "Sign in to load today’s briefing.",
   "flag_this": "This affects us",
-  "dismiss": "Dismiss"
+  "dismiss": "Dismiss",
+  "nav_home": "Home",
+  "nav_product": "Product",
+  "nav_cases": "Case Studies",
+  "nav_contact": "Contact",
+  "get_started": "Get Started",
+  "hero_line1": "See the risk",
+  "hero_line2": "Before it hits cash",
+  "hero_sub": "Morning project-risk briefings for UAE subcontractors and suppliers.",
+  "trust": "Built for UAE construction SMEs",
+  "stat_briefing": "Morning briefing",
+  "stat_gate": "Act evidence gate",
+  "stat_watch": "Watch while you sleep",
+  "stat_uae": "UAE first"
 }
