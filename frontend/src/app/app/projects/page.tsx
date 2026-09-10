@@ -7,10 +7,27 @@ import ar from "../../../i18n/ar.json";
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 type Project = { id: string; name: string; code: string; slug: string; forward_address: string };
-type Doc = { id: string; filename: string; project_id: string | null; parse_status: string; unassigned: boolean };
+type Doc = { id: string; filename: string; project_id: string | null; parse_status: string; unassigned: boolean; coach?: string };
 
 function auth() {
   return { Authorization: `Bearer ${localStorage.getItem("pb_token") || ""}` };
+}
+
+function DocRow({ d, canWrite, projects, t, onReassign, onTicket }: { d: Doc; canWrite: boolean; projects: Project[]; t: Record<string, string>; onReassign: (id: string, pid: string) => void; onTicket: (id: string) => void }) {
+  const bad = d.parse_status === "needs_ocr" || d.parse_status === "needs_better_file";
+  return (
+    <div className="card">
+      <p>{d.filename} · {d.parse_status}</p>
+      {d.coach && <p className={bad ? "ask-banner" : "muted"}>{d.coach}</p>}
+      {canWrite && d.unassigned && (
+        <select defaultValue="" onChange={(e) => e.target.value && onReassign(d.id, e.target.value)}>
+          <option value="">{t.reassign}</option>
+          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+      )}
+      {canWrite && bad && <p><button type="button" onClick={() => onTicket(d.id)}>{t.ocr_ticket}</button></p>}
+    </div>
+  );
 }
 
 export default function ProjectsPage() {
@@ -19,7 +36,7 @@ export default function ProjectsPage() {
   const role = typeof window !== "undefined" ? localStorage.getItem("pb_role") || "" : "";
   const canWrite = role === "owner" || role === "ops";
   const [projects, setProjects] = useState<Project[]>([]);
-  const [unassigned, setUnassigned] = useState<Doc[]>([]);
+  const [docs, setDocs] = useState<Doc[]>([]);
   const [quota, setQuota] = useState("");
   const [note, setNote] = useState("");
   const [runOut, setRunOut] = useState("");
@@ -27,10 +44,10 @@ export default function ProjectsPage() {
   async function load() {
     const [p, d] = await Promise.all([
       fetch(`${API}/api/projects`, { headers: auth() }),
-      fetch(`${API}/api/documents?unassigned=1`, { headers: auth() }),
+      fetch(`${API}/api/documents`, { headers: auth() }),
     ]);
     if (p.ok) setProjects(await p.json());
-    if (d.ok) setUnassigned(await d.json());
+    if (d.ok) setDocs(await d.json());
   }
   useEffect(() => {
     setLocale(localStorage.getItem("pb_locale") || "en");
@@ -71,7 +88,7 @@ export default function ProjectsPage() {
     if (projectId) body.append("project_id", projectId);
     const res = await fetch(`${API}/api/documents`, { method: "POST", headers: auth(), body });
     const data = await res.json();
-    setNote(`${data.parse_status || ""} · events ${data.event_count ?? "—"} · ${data.match_method || ""}`);
+    setNote(data.coach || `${data.parse_status || ""} · events ${data.event_count ?? "—"}`);
     summarizeRun(data.agents_run);
     await load();
   }
@@ -87,11 +104,22 @@ export default function ProjectsPage() {
     await load();
   }
 
+  async function ticket(docId: string) {
+    await fetch(`${API}/api/documents/${docId}/ocr-ticket`, {
+      method: "POST",
+      headers: { ...auth(), "Content-Type": "application/json" },
+      body: JSON.stringify({ ticket: `OCR-${docId.slice(0, 8)}` }),
+    });
+    setNote(t.ocr_ticket_ok);
+  }
+
   async function run(projectId: string) {
     const res = await fetch(`${API}/api/projects/${projectId}/run`, { method: "POST", headers: auth() });
     const data = await res.json();
     summarizeRun(data);
   }
+
+  const unassigned = docs.filter((d) => d.unassigned);
 
   return (
     <article>
@@ -109,7 +137,7 @@ export default function ProjectsPage() {
           <h2>{t.create_project}</h2>
           <label htmlFor="proj-name">{t.company_name}</label>
           <input id="proj-name" name="name" required />
-          <label htmlFor="proj-code">Code</label>
+          <label htmlFor="proj-code">{t.project_code}</label>
           <input id="proj-code" name="code" required />
           <button type="submit">{t.create_project}</button>
         </form>
@@ -126,15 +154,7 @@ export default function ProjectsPage() {
         <section>
           <h2 className="dash-sec">{t.unassigned}</h2>
           {unassigned.map((d) => (
-            <div key={d.id} className="card">
-              <p>{d.filename} · {d.parse_status}</p>
-              {canWrite && (
-                <select defaultValue="" onChange={(e) => e.target.value && void reassign(d.id, e.target.value)}>
-                  <option value="">{t.reassign}</option>
-                  {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-              )}
-            </div>
+            <DocRow key={d.id} d={d} canWrite={canWrite} projects={projects} t={t} onReassign={reassign} onTicket={(id) => void ticket(id)} />
           ))}
         </section>
       )}
@@ -143,6 +163,9 @@ export default function ProjectsPage() {
         <section key={p.id} className="dash-card">
           <h2>{p.name} <span className="muted">{p.code}</span></h2>
           <p className="ev">{p.forward_address}</p>
+          {docs.filter((d) => d.project_id === p.id).map((d) => (
+            <DocRow key={d.id} d={d} canWrite={canWrite} projects={projects} t={t} onReassign={reassign} onTicket={(id) => void ticket(id)} />
+          ))}
           {canWrite && (
             <>
               <input type="file" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(p.id, f); }} />
