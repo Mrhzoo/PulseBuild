@@ -127,11 +127,19 @@ export default function DigestAppPage() {
   async function sendBriefing() {
     setSending(true);
     setSent("");
+    setError(null);
     try {
       const res = await fetch(`${API}/api/digest/today/send`, { method: "POST", headers: { Authorization: `Bearer ${token()}` } });
-      const data = res.ok ? await res.json().catch(() => ({})) : {};
-      if (!res.ok) setError(t.send_failed);
-      else setSent(data.status || data.channel || t.send_ok);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(res.status === 503 ? t.send_email_unconfigured : t.send_failed);
+        return;
+      }
+      const via = String(data.delivered_via || "");
+      const parts = [via === "stub" ? t.send_stub : t.send_ok];
+      if (data.whatsapp === "whatsapp") parts.push(t.wa_sent);
+      else if (data.whatsapp === "failed") parts.push(t.wa_not_sent);
+      setSent(parts.join(" · "));
     } finally {
       setSending(false);
     }
@@ -160,7 +168,7 @@ export default function DigestAppPage() {
             <a href="/app/flags">{t.open_flags}</a>
           </div>
         )}
-        {sent && <p className="muted">{t.send_ok}: {sent}</p>}
+        {sent && <p className="muted">{sent}</p>}
       </header>
       {needLogin && <div className="card"><a href="/login">{t.sign_in_link}</a></div>}
       {error && <div className="card">{error}</div>}
