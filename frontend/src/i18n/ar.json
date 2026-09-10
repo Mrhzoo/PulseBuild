@@ -29,6 +29,7 @@
   "nav_product": "المنتج",
   "nav_cases": "حالات",
   "nav_contact": "تواصل",
+  "nav_pricing": "الأسعار",
   "get_started": "ابدأ",
   "hero_line1": "شاهد المخاطر",
   "hero_line2": "قبل أن يمس النقد",
@@ -36,7 +37,7 @@
   "trust": "مبني لشركات البناء في الإمارات",
   "stat_briefing": "إحاطة صباحية",
   "stat_gate": "شرط الدليل",
-  "stat_watch": "مراقبة ليلاً",
+  "stat_watch": "البريد هو التزام الصباحي",
   "stat_uae": "الإمارات أولاً",
   "channel_promise": "الإحاطة الصباحية عبر البريد.",
   "section_act": "إجراء",
@@ -61,6 +62,7 @@
   "dismiss_flag": "إغلاق العلامة",
   "share_revoked": "ملغاة",
   "share_unavailable": "الرابط غير متاح",
+  "share_proof": "مشاركة من PulseBuild · رابط إثبات، ليس بوابة حية.",
   "billing_stub": "دفع تجريبي — بلا رسم حي",
   "billing_ok": "عاد الدفع.",
   "billing_canceled": "ألغي الدفع.",
@@ -90,5 +92,10 @@
   "last_data": "آخر ملف",
   "step_n": "الخطوة {n} / 4",
   "no_new_findings": "لا بنود جديدة — نفس البطاقات أو لا جديد.",
-  "billing_stub_entitlement": "دفع تجريبي — بلا رسم وبلا تغيير حصة حتى يُطبّق ويبهوك."
+  "billing_stub_entitlement": "دفع تجريبي — بلا رسم وبلا تغيير حصة حتى يُطبّق ويبهوك.",
+  "theme_light": "فاتح",
+  "theme_dark": "داكن",
+  "login_title": "دخول إلى PulseBuild",
+  "project_code": "الرمز",
+  "stripe_live": "سترايب حي"
 }
