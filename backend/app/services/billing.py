@@ -1,4 +1,4 @@
-"""AED pilot billing. Stripe live only with keys; otherwise explicit stub."""
+"""AED pilot billing. Stripe live when keys set and BILLING_STUB is false."""
 
 from __future__ import annotations
 
@@ -18,7 +18,15 @@ HARD_STATUSES = frozenset({"active", "past_due", "trialing"})
 
 
 def stripe_live() -> bool:
-    return bool((settings.stripe_secret_key or "").strip()) and not settings.billing_stub and settings.app_env != "development"
+    return bool((settings.stripe_secret_key or "").strip()) and not settings.billing_stub
+
+
+def allow_billing_stub() -> bool:
+    return bool(settings.billing_stub) or settings.app_env == "development"
+
+
+def billing_configured() -> bool:
+    return stripe_live() and bool((settings.stripe_price_pilot_aed or "").strip())
 
 
 async def project_count(session: AsyncSession, tenant_id: UUID) -> int:
@@ -52,6 +60,7 @@ def verify_stripe_signature(payload: bytes, header: str, secret: str, tolerance:
 
 def apply_subscription_event(tenant: Tenant, event_type: str, data: dict) -> None:
     obj = data.get("object") or data
+    meta = obj.get("metadata") or {}
     if event_type == "invoice.payment_failed":
         tenant.billing_status = "past_due"
         return
@@ -71,3 +80,5 @@ def apply_subscription_event(tenant: Tenant, event_type: str, data: dict) -> Non
             tenant.billing_status = "past_due"
         elif status == "trialing":
             tenant.billing_status = "trialing"
+        if event_type == "checkout.session.completed" and str(meta.get("addon") or "") in {"1", "true"}:
+            tenant.project_quota = int(getattr(tenant, "project_quota", None) or 3) + 3
