@@ -37,6 +37,15 @@ export default function ProjectsPage() {
     void load();
   }, []);
 
+  function summarizeRun(data: { created?: string[]; updated?: string[]; dropped?: string[] } | null | undefined) {
+    if (!data) return;
+    const created = data.created || [];
+    const updated = data.updated || [];
+    const dropped = data.dropped || [];
+    if (!created.length && !updated.length) setRunOut(t.no_new_findings);
+    else setRunOut(`${t.run_agents}: +${created.length} / ~${updated.length} / drop ${dropped.length}`);
+  }
+
   async function createProject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setQuota("");
@@ -63,26 +72,25 @@ export default function ProjectsPage() {
     const res = await fetch(`${API}/api/documents`, { method: "POST", headers: auth(), body });
     const data = await res.json();
     setNote(`${data.parse_status || ""} · events ${data.event_count ?? "—"} · ${data.match_method || ""}`);
+    summarizeRun(data.agents_run);
     await load();
   }
 
   async function reassign(docId: string, projectId: string) {
-    await fetch(`${API}/api/documents/${docId}/reassign`, {
+    const res = await fetch(`${API}/api/documents/${docId}/reassign`, {
       method: "POST",
       headers: { ...auth(), "Content-Type": "application/json" },
       body: JSON.stringify({ project_id: projectId }),
     });
+    const data = await res.json().catch(() => ({}));
+    summarizeRun(data.agents_run);
     await load();
   }
 
   async function run(projectId: string) {
     const res = await fetch(`${API}/api/projects/${projectId}/run`, { method: "POST", headers: auth() });
     const data = await res.json();
-    const created = data.created || [];
-    const updated = data.updated || [];
-    const dropped = data.dropped || [];
-    if (!created.length && !updated.length) setRunOut(t.no_new_findings);
-    else setRunOut(`${t.run_agents}: +${created.length} / ~${updated.length} / drop ${dropped.length}`);
+    summarizeRun(data);
   }
 
   return (
