@@ -22,6 +22,8 @@ def stripe_live() -> bool:
 
 
 def allow_billing_stub() -> bool:
+    if settings.app_env == "production":
+        return False
     return bool(settings.billing_stub) or settings.app_env == "development"
 
 
