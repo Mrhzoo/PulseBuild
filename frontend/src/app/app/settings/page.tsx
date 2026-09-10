@@ -77,6 +77,10 @@ export default function SettingsPage() {
       <section className="card">
         <h2>{t.inbound_title}</h2>
         <p className="muted">{inbound?.note || t.inbound_stub}</p>
+        <p className="sub">{t.inbound_test}</p>
+        {(inbound?.checklist || []).map((item: { id: string; label: string; ok: boolean }) => (
+          <p key={item.id} className="ev">{item.ok ? "✓" : "—"} {item.label}</p>
+        ))}
         {(inbound?.forwards || []).map((f: { project: string; forward_address: string }) => (
           <p key={f.forward_address} className="ev">{f.project}: {f.forward_address}</p>
         ))}
