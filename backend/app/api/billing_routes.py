@@ -25,7 +25,18 @@ async def billing_status(principal: Principal = Depends(get_principal), session:
         raise HTTPException(404, "tenant")
     used = await project_count(session, principal.tenant_id)
     quota = int(getattr(tenant, "project_quota", None) or 3)
-    return {"plan": tenant.billing_plan, "currency": "AED", "billing_status": getattr(tenant, "billing_status", None) or "trialing", "project_quota": quota, "projects_used": used, "stripe_live": stripe_live(), "stub": not stripe_live()}
+    live = stripe_live()
+    return {
+        "plan": tenant.billing_plan,
+        "currency": "AED",
+        "billing_status": getattr(tenant, "billing_status", None) or "trialing",
+        "project_quota": quota,
+        "projects_used": used,
+        "quota_hit": used >= quota,
+        "stripe_live": live,
+        "stub": not live,
+        "stub_no_entitlement": not live,
+    }
 
 
 @router.post("/billing/checkout")
@@ -41,7 +52,7 @@ async def billing_checkout(payload: dict | None = None, principal: Principal = D
         folder = Path(settings.local_upload_dir).resolve().parent / "billing"
         folder.mkdir(parents=True, exist_ok=True)
         (folder / f"{fake}.txt").write_text(f"tenant={tenant.id} addon={addon}\n", encoding="utf-8")
-        return {"url": f"{dest}?session={fake}", "mode": "stub", "session_id": fake}
+        return {"url": f"{dest}?session={fake}", "mode": "stub", "session_id": fake, "note": "Stub checkout — no entitlement change until a webhook is applied."}
     body = {
         "mode": "subscription",
         "success_url": f"{dest}?ok=1",
