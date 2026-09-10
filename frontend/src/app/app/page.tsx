@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import en from "../../i18n/en.json";
+import ar from "../../i18n/ar.json";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -17,6 +19,8 @@ type Card = {
 
 type Digest = {
   date: string;
+  tenant?: string;
+  company?: string;
   channel_promise: string;
   act: Card[];
   watch: Card[];
@@ -30,9 +34,12 @@ function token(): string {
   return localStorage.getItem("pb_token") || "";
 }
 
-function RiskCard({ card, canWrite }: { card: Card; canWrite: boolean }) {
-  const [note, setNote] = useState("This affects us");
+function RiskCard({ card, canWrite, kind, t }: { card: Card; canWrite: boolean; kind: "act" | "watch"; t: Record<string, string> }) {
+  const [note, setNote] = useState(t.flag_this);
   const [share, setShare] = useState<string | null>(null);
+  const [gone, setGone] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   async function flag() {
     const res = await fetch(`${API}/api/findings/${card.id}/flag`, {
       method: "POST",
@@ -41,7 +48,7 @@ function RiskCard({ card, canWrite }: { card: Card; canWrite: boolean }) {
     });
     if (res.ok) {
       const data = await res.json();
-      setShare(data.share_url || data.share_token || "ok");
+      setShare(data.share_url || (data.share_token ? `${window.location.origin}/share/${data.share_token}` : null));
     }
   }
   async function dismiss() {
@@ -50,57 +57,119 @@ function RiskCard({ card, canWrite }: { card: Card; canWrite: boolean }) {
       headers: { Authorization: `Bearer ${token()}`, "Content-Type": "application/json" },
       body: JSON.stringify({ reason: "not material" }),
     });
+    setGone(true);
   }
+  if (gone) return null;
   return (
-    <article className={`card ${card.severity}`}>
-      <div className="sev">{card.severity.toUpperCase()} · {card.project_name}<span className="conf"> · {Math.round(card.confidence * 100)}%</span></div>
+    <article className={`dash-card ${kind}`}>
+      <div className="dash-meta">
+        <span className="sev-pill">{card.severity}</span>
+        <span>{card.project_name}</span>
+        <span className="conf-pill">{Math.round(card.confidence * 100)}%</span>
+      </div>
       <h3>{card.title}</h3>
       <p className="why">{card.why_it_hits_us}</p>
       <p className="ev">{card.evidence_snippet} · {card.evidence_pointer}</p>
-      {canWrite && (<div><input value={note} onChange={(e) => setNote(e.target.value)} /><button type="button" onClick={() => void flag()}>This affects us</button><button type="button" onClick={() => void dismiss()}>Dismiss</button></div>)}
-      {share && <p className="ev">Share link ready</p>}
+      {canWrite && (
+        <div className="dash-actions">
+          <input value={note} onChange={(e) => setNote(e.target.value)} />
+          <button type="button" onClick={() => void flag()}>{t.flag_this}</button>
+          <button type="button" onClick={() => void dismiss()}>{t.dismiss}</button>
+        </div>
+      )}
+      {share && (
+        <p className="ev">
+          <button type="button" onClick={() => { void navigator.clipboard.writeText(share); setCopied(true); }}>
+            {copied ? t.copied : t.copy_share}
+          </button>
+        </p>
+      )}
     </article>
   );
 }
 
 export default function DigestAppPage() {
+  const [locale, setLocale] = useState("en");
   const [digest, setDigest] = useState<Digest | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [needLogin, setNeedLogin] = useState(false);
   const [role, setRole] = useState("");
   const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState("");
+
+  const t = (locale === "ar" ? ar : en) as Record<string, string>;
+
   async function load() {
     const headers: Record<string, string> = {};
-    const t = token();
-    if (t) headers.Authorization = `Bearer ${t}`;
+    const tok = token();
+    if (tok) headers.Authorization = `Bearer ${tok}`;
     try {
       const res = await fetch(`${API}/api/digest/today`, { cache: "no-store", headers });
-      if (res.ok) { setDigest(await res.json()); setNeedLogin(false); }
-      else if (res.status === 401) { setNeedLogin(true); setError(null); }
-      else setError("Digest is unavailable. No invented risks are shown.");
-    } catch { setError("API is not connected yet. Start the backend, then refresh."); }
+      if (res.ok) {
+        setDigest(await res.json());
+        setNeedLogin(false);
+        setError(null);
+      } else if (res.status === 401) {
+        setNeedLogin(true);
+      } else setError(t.errors_unavailable);
+    } catch {
+      setError(t.errors_unavailable);
+    }
   }
-  useEffect(() => { setRole(localStorage.getItem("pb_role") || ""); void load(); }, []);
+
+  useEffect(() => {
+    setLocale(localStorage.getItem("pb_locale") || "en");
+    setRole(localStorage.getItem("pb_role") || "");
+    void load();
+  }, []);
+
   async function sendBriefing() {
     setSending(true);
+    setSent("");
     try {
       const res = await fetch(`${API}/api/digest/today/send`, { method: "POST", headers: { Authorization: `Bearer ${token()}` } });
-      if (!res.ok) setError("Could not send briefing.");
-    } finally { setSending(false); }
+      const data = res.ok ? await res.json().catch(() => ({})) : {};
+      if (!res.ok) setError(t.send_failed);
+      else setSent(data.status || data.channel || t.send_ok);
+    } finally {
+      setSending(false);
+    }
   }
-  const canSend = role === "owner" || role === "ops";
+
+  const canWrite = role === "owner" || role === "ops";
+  const empty = digest && digest.act.length === 0 && digest.watch.length === 0;
+
   return (
-    <>
-      <h1>Today’s digest</h1>
-      <p className="sub">{digest?.channel_promise || "Morning briefing by email."} What threatens cash, crew, or margin this week.</p>
-      {needLogin && <div className="card"><a href="/login">Sign in to load today’s briefing.</a></div>}
-      {canSend && <p><button type="button" onClick={() => void sendBriefing()} disabled={sending}>{sending ? "Sending…" : "Send morning briefing"}</button> <a href="/flags">Open flags</a></p>}
+    <div className="dash">
+      <header className="dash-head">
+        <p className="muted">{digest?.date} · {digest?.company || digest?.tenant || ""}</p>
+        <h1>{t.digest_title}</h1>
+        <p className="sub">{digest?.channel_promise || t.channel_promise}</p>
+        {canWrite && (
+          <div className="dash-toolbar">
+            <button type="button" onClick={() => void sendBriefing()} disabled={sending}>{sending ? t.sending : t.send_briefing}</button>
+            <button type="button" onClick={() => void load()}>{t.refresh}</button>
+            <a href="/flags">{t.open_flags}</a>
+          </div>
+        )}
+        {sent && <p className="muted">{t.send_ok}: {sent}</p>}
+      </header>
+      {needLogin && <div className="card"><a href="/login">{t.sign_in_link}</a></div>}
       {error && <div className="card">{error}</div>}
-      {digest && digest.act.length === 0 && digest.watch.length === 0 && <div className="card">Quiet morning. Upload a schedule, last IPC, or a variation email.</div>}
-      {digest?.act.map((c) => <RiskCard key={c.id} card={c} canWrite={canSend} />)}
-      {digest?.watch.map((c) => <RiskCard key={c.id} card={c} canWrite={canSend} />)}
-      {digest && digest.quiet_projects.length > 0 && <p className="muted">Quiet: {digest.quiet_projects.join(", ")}</p>}
-      {digest?.ask && <p className="sub">{digest.ask}</p>}
-    </>
+      {empty && (
+        <div className="card">
+          {t.quiet_morning}{" "}
+          <a href="/app/projects">{t.upload}</a>
+        </div>
+      )}
+      {digest && digest.act.length > 0 && <h2 className="dash-sec">{t.section_act}</h2>}
+      {digest?.act.map((c) => <RiskCard key={c.id} card={c} canWrite={canWrite} kind="act" t={t} />)}
+      {digest && digest.watch.length > 0 && <h2 className="dash-sec">{t.section_watch}</h2>}
+      {digest?.watch.map((c) => <RiskCard key={c.id} card={c} canWrite={canWrite} kind="watch" t={t} />)}
+      {digest && digest.quiet_projects.length > 0 && (
+        <p className="chips">{digest.quiet_projects.map((n) => <span key={n} className="chip">{n}</span>)}</p>
+      )}
+      {digest?.ask && <aside className="ask-banner">{digest.ask}</aside>}
+    </div>
   );
 }
