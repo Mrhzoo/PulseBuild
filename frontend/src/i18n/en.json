@@ -108,5 +108,8 @@
   "pack_label": "Coordination pack",
   "pack_watermark": "For coordination only",
   "inbound_title": "Inbound email",
-  "inbound_stub": "Inbound is a stub. Send yourself a test after Postmark inbound is wired."
+  "inbound_stub": "Inbound is a stub. Send yourself a test after Postmark inbound is wired.",
+  "inbound_test": "Send yourself a test to the project forward address after the webhook is live.",
+  "ocr_ticket": "Open OCR ticket",
+  "ocr_ticket_ok": "OCR ticket opened — text is not invented."
 }
