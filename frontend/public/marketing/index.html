@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PulseBuild — See the risk before it hits cash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmN1C3o8l+Xk4y4ZbR8sLqCge+iExMw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="video-wrap" aria-hidden="true">
+    <video id="bg" autoplay muted loop playsinline poster="">
+      <source src="https://d2v5dzokg4q2x.cloudfront.net/videos/landscape/large/construction-aerial.mp4" type="video/mp4" />
+      <source src="https://videos.pexels.com/video-files/3773486/3773486-hd_1920_1080_25fps.mp4" type="video/mp4" />
+    </video>
+    <div class="veil"></div>
+  </div>
+
+  <header class="topbar">
+    <a class="logo" href="/" aria-label="PulseBuild">
+      <span class="logo-circle">PB</span>
+    </a>
+    <nav class="pill" id="nav-pill">
+      <a href="#home">Home</a>
+      <a href="#product">Product</a>
+      <a href="#cases">Case Studies</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="signin" href="/login">Sign in</a>
+    <button class="burger" id="burger" aria-label="Menu" type="button"><i class="fa-solid fa-bars"></i></button>
+  </header>
+
+  <main class="hero" id="home">
+    <h1>
+      <span class="line">See the risk</span>
+      <span class="line">Before it hits cash</span>
+    </h1>
+    <p class="sub">Morning project-risk briefings for UAE subcontractors and suppliers.<br />Upload PDFs, forward email, get Act / Watch before margin slips.</p>
+    <div class="trust">Built for UAE construction SMEs</div>
+    <a class="cta" href="/login">Get Started</a>
+  </main>
+
+  <footer class="stats" id="product">
+    <div class="stat"><span class="ico">&lt;</span><strong>1</strong><em>Morning briefing</em></div>
+    <div class="stat"><span class="ico">%</span><strong>95</strong><em>Act evidence gate</em></div>
+    <div class="stat"><span class="ico">*</span><strong>24/7</strong><em>Watch while you sleep</em></div>
+    <div class="stat"><span class="ico">#</span><strong>AED</strong><em>UAE first</em></div>
+  </footer>
+
+  <div class="drawer" id="drawer">
+    <a href="#home">Home</a>
+    <a href="#product">Product</a>
+    <a href="#cases">Case Studies</a>
+    <a href="#contact">Contact</a>
+    <a href="/login">Sign in</a>
+  </div>
+
+  <script src="./main.js"></script>
+</body>
+</html>
