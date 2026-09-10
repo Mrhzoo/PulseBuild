@@ -60,5 +60,18 @@
   "revoke_share": "Revoke share",
   "dismiss_flag": "Dismiss flag",
   "share_revoked": "Revoked",
-  "share_unavailable": "Link unavailable"
+  "share_unavailable": "Link unavailable",
+  "billing_stub": "Stub checkout — no live charge",
+  "billing_ok": "Checkout returned.",
+  "billing_canceled": "Checkout canceled.",
+  "project_pack": "+ project pack",
+  "customer_portal": "Customer portal",
+  "onboarding_done": "You’re set.",
+  "temp_password": "Temporary password (shown once)",
+  "skip": "Skip",
+  "save_continue": "Save and continue",
+  "finish": "Finish",
+  "settings": "Settings",
+  "prefs": "Preferences",
+  "people": "People"
 }
