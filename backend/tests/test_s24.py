@@ -14,6 +14,15 @@ def test_prod_without_keys_is_not_live(monkeypatch):
     assert billing_configured() is False
 
 
+def test_prod_refuses_stub_even_if_flag_left_on(monkeypatch):
+    from app import config
+    monkeypatch.setattr(config.settings, "app_env", "production")
+    monkeypatch.setattr(config.settings, "billing_stub", True)
+    monkeypatch.setattr(config.settings, "stripe_secret_key", "")
+    assert stripe_live() is False
+    assert allow_billing_stub() is False
+
+
 def test_keys_and_stub_off_is_live(monkeypatch):
     from app import config
     monkeypatch.setattr(config.settings, "app_env", "development")
@@ -28,5 +37,12 @@ def test_checkout_completed_activates_and_addon_bumps_quota():
     tenant = SimpleNamespace(billing_status="trialing", project_quota=3, stripe_customer_id=None, stripe_subscription_id=None)
     apply_subscription_event(tenant, "checkout.session.completed", {"object": {"payment_status": "paid", "customer": "cus_1", "metadata": {}}})
     assert tenant.billing_status == "active"
+    assert tenant.stripe_customer_id == "cus_1"
     apply_subscription_event(tenant, "checkout.session.completed", {"object": {"payment_status": "paid", "customer": "cus_1", "metadata": {"addon": "1"}}})
     assert tenant.project_quota == 6
+
+
+def test_invoice_failed_marks_past_due():
+    tenant = SimpleNamespace(billing_status="active", project_quota=3, stripe_customer_id="cus_1", stripe_subscription_id="sub_1")
+    apply_subscription_event(tenant, "invoice.payment_failed", {"object": {"customer": "cus_1"}})
+    assert tenant.billing_status == "past_due"
