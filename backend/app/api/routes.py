@@ -11,8 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import Principal, get_principal, require_write
 from app.db import get_session
 from app.ingest.pipeline import ingest_document, sniff_parser
+from app.ingest.types import parse_coach
 from app.models.orm import Document, Event, Membership, Project, Role, Tenant, User
 from app.security import hash_password
+from app.services.assisted_ops import apply_edit
 from app.services.audit import write_audit
 from app.services.billing import enforce_project_quota
 from app.services.crypto_store import write_encrypted
@@ -50,12 +52,14 @@ async def create_project(payload: dict, principal: Principal = Depends(require_w
 
 
 @router.get("/documents")
-async def list_documents(unassigned: int = 0, principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> list[dict]:
+async def list_documents(unassigned: int = 0, project_id: str | None = None, principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> list[dict]:
     stmt = select(Document).where(Document.tenant_id == principal.tenant_id)
     if unassigned:
         stmt = stmt.where(Document.project_id.is_(None))
+    if project_id:
+        stmt = stmt.where(Document.project_id == UUID(project_id))
     rows = (await session.execute(stmt.order_by(Document.created_at.desc()))).scalars().all()
-    return [{"id": str(d.id), "filename": d.filename, "project_id": str(d.project_id) if d.project_id else None, "parse_status": d.parse_status, "unassigned": d.project_id is None} for d in rows]
+    return [{"id": str(d.id), "filename": d.filename, "project_id": str(d.project_id) if d.project_id else None, "parse_status": d.parse_status, "unassigned": d.project_id is None, "coach": parse_coach(d.parse_status)} for d in rows]
 
 
 @router.post("/documents")
@@ -85,7 +89,7 @@ async def upload_document(file: UploadFile = File(...), project_id: str | None =
     agents_run = await maybe_auto_run(session, principal.tenant_id, doc.project_id, doc.parse_status)
     await session.commit()
     await session.refresh(doc)
-    return {"id": str(doc.id), "project_id": str(doc.project_id) if doc.project_id else None, "unassigned": doc.project_id is None, "parse_status": doc.parse_status, "event_count": len(events), "match_method": match.method, "agents_run": agents_run}
+    return {"id": str(doc.id), "project_id": str(doc.project_id) if doc.project_id else None, "unassigned": doc.project_id is None, "parse_status": doc.parse_status, "coach": parse_coach(doc.parse_status), "event_count": len(events), "match_method": match.method, "agents_run": agents_run}
 
 
 @router.post("/documents/{document_id}/reassign")
@@ -113,7 +117,28 @@ async def reingest_document(document_id: UUID, principal: Principal = Depends(re
     await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="document.reingest", entity_type="document", entity_id=str(doc.id), after={"parse_status": doc.parse_status, "event_count": len(events)})
     agents_run = await maybe_auto_run(session, principal.tenant_id, doc.project_id, doc.parse_status)
     await session.commit()
-    return {"id": str(doc.id), "parse_status": doc.parse_status, "event_count": len(events), "project_id": str(doc.project_id) if doc.project_id else None, "agents_run": agents_run}
+    return {"id": str(doc.id), "parse_status": doc.parse_status, "coach": parse_coach(doc.parse_status), "event_count": len(events), "project_id": str(doc.project_id) if doc.project_id else None, "agents_run": agents_run}
+
+
+@router.post("/documents/{document_id}/ocr-ticket")
+async def ocr_ticket(document_id: UUID, payload: dict | None = None, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+    doc = await session.get(Document, document_id)
+    if not doc or doc.tenant_id != principal.tenant_id:
+        raise HTTPException(404, "document")
+    ticket = ((payload or {}).get("ticket") or f"OCR-{doc.filename}")[:80]
+    row = await apply_edit(
+        session,
+        tenant_id=principal.tenant_id,
+        actor_id=principal.user_id,
+        kind="ocr_ticket",
+        entity_id=str(doc.id),
+        before={"parse_status": doc.parse_status},
+        after={"requested": True},
+        minutes=1,
+        ticket=ticket,
+    )
+    await session.commit()
+    return {"ok": True, "ticket": ticket, "edit_id": str(row.id), "parse_status": doc.parse_status, "note": "Ticket opened. Text is not invented."}
 
 
 @router.get("/projects/{project_id}/events")
