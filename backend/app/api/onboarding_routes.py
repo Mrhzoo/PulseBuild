@@ -3,11 +3,13 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import Principal, get_principal, require_write
+from app.config import settings
 from app.db import get_session
-from app.models.orm import Tenant, User
+from app.models.orm import Document, Project, Tenant, User
 
 router = APIRouter()
 
@@ -29,6 +31,22 @@ async def onboarding_status(principal: Principal = Depends(get_principal), sessi
     if not tenant:
         raise HTTPException(404, "tenant")
     return {"completed": bool(tenant.onboarding_completed_at), "onboarding_completed_at": tenant.onboarding_completed_at.isoformat() if tenant.onboarding_completed_at else None, "company": tenant.name}
+
+
+@router.get("/inbound/status")
+async def inbound_status(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
+    tenant = await session.get(Tenant, principal.tenant_id)
+    if not tenant:
+        raise HTTPException(404, "tenant")
+    projects = list((await session.execute(select(Project).where(Project.tenant_id == principal.tenant_id))).scalars().all())
+    last = (await session.execute(select(Document).where(Document.tenant_id == principal.tenant_id, Document.source_type == "email").order_by(Document.created_at.desc()))).scalars().first()
+    live = bool((settings.postmark_inbound_secret or "").strip()) and settings.app_env != "development"
+    return {
+        "live": live,
+        "note": "Inbound is a stub in development. Send yourself a test only after Postmark inbound is wired." if not live else "Inbound webhook is configured.",
+        "forwards": [{"project": p.name, "forward_address": p.forward_address} for p in projects if p.forward_address],
+        "last_inbound": None if not last else {"id": str(last.id), "filename": last.filename, "parse_status": last.parse_status, "created_at": last.created_at.isoformat() if last.created_at else None},
+    }
 
 
 async def _set_whatsapp(session: AsyncSession, principal: Principal, payload: dict) -> dict:
