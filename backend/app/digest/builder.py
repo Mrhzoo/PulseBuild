@@ -32,12 +32,18 @@ def card_from_finding(finding: Finding, project_name: str) -> DigestCard | None:
 def assemble_payload(*, tenant_name: str, for_date: date, findings: list[Finding], projects: list[Project], unassigned: int, last_data_received: str | None = None) -> DigestPayload:
     names = {p.id: p.name for p in projects}
     cards: list[DigestCard] = []
+    seen_pointers: set[str] = set()
     for finding in findings:
         if finding.dismissed:
             continue
         card = card_from_finding(finding, names.get(finding.project_id, ""))
-        if card:
-            cards.append(card)
+        if not card:
+            continue
+        key = card.evidence_pointer or card.id
+        if key in seen_pointers:
+            continue
+        seen_pointers.add(key)
+        cards.append(card)
     act = [c for c in cards if c.severity == "act"][:5]
     watch = [c for c in cards if c.severity == "watch"]
     low = [c for c in cards if c.severity == "low"]
