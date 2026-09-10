@@ -1,3 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import en from "../../../i18n/en.json";
+import ar from "../../../i18n/ar.json";
+
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 type Share = {
@@ -13,27 +19,34 @@ type Share = {
   severity: string;
 };
 
-export default async function SharePage({ params }: { params: { token: string } }) {
-  let card: Share | null = null;
-  let missing = false;
-  try {
-    const res = await fetch(`${API}/api/share/${params.token}`, { cache: "no-store" });
-    if (res.ok) card = await res.json();
-    else missing = true;
-  } catch {
-    missing = true;
+export default function SharePage({ params }: { params: { token: string } }) {
+  const [locale, setLocale] = useState("en");
+  const t = (locale === "ar" ? ar : en) as Record<string, string>;
+  const [card, setCard] = useState<Share | null>(null);
+  const [missing, setMissing] = useState(false);
+
+  useEffect(() => {
+    setLocale(localStorage.getItem("pb_locale") || "en");
+    void fetch(`${API}/api/share/${params.token}`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then(setCard)
+      .catch(() => setMissing(true));
+  }, [params.token]);
+
+  if (missing || (!card && locale)) {
+    if (missing) {
+      return (
+        <article className="mkt-page" style={{ margin: "12vh auto", padding: "0 24px" }}>
+          <span className="logo-circle">PB</span>
+          <h1>{t.share_unavailable}</h1>
+          <p className="sub">{t.share_revoked}</p>
+          <p className="muted">{t.share_proof}</p>
+        </article>
+      );
+    }
   }
 
-  if (missing || !card) {
-    return (
-      <article className="mkt-page" style={{ margin: "12vh auto", padding: "0 24px" }}>
-        <span className="logo-circle">PB</span>
-        <h1>Link unavailable</h1>
-        <p className="sub">This share was revoked or never existed. No extra project data is shown.</p>
-        <p className="muted">Shared from PulseBuild · proof link, not a live portal.</p>
-      </article>
-    );
-  }
+  if (!card) return <p className="muted">…</p>;
 
   return (
     <article className="mkt-page" style={{ margin: "12vh auto", padding: "0 24px" }}>
@@ -50,7 +63,7 @@ export default async function SharePage({ params }: { params: { token: string } 
         <p className="ev">{card.evidence_snippet} · {card.evidence_pointer}</p>
         {card.note && <p>{card.note}</p>}
       </div>
-      <p className="muted">Shared from PulseBuild · proof link, not a live portal.</p>
+      <p className="muted">{t.share_proof}</p>
     </article>
   );
 }
