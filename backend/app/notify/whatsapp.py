@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.digest.payload import DigestPayload
+from app.digest.payload import DigestPayload, resolve_locale
 from app.models.orm import Membership, User
 
 
@@ -28,7 +28,7 @@ def write_stub(payload: DigestPayload, numbers: list[str]) -> Path:
     folder = Path(settings.local_upload_dir).resolve().parent / "whatsapp"
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / f"{payload.date}-{payload.digest_id or 'preview'}.txt"
-    path.write_text(f"to={','.join(numbers) or '(none)'}\n{_preview_text(payload)}\n", encoding="utf-8")
+    path.write_text(f"to={','.join(numbers) or '(none)'}\nlang={resolve_locale(payload)}\n{_preview_text(payload)}\n", encoding="utf-8")
     return path
 
 
@@ -38,12 +38,13 @@ def _must_use_template() -> bool:
 
 def _message_payload(payload: DigestPayload, number: str) -> dict:
     to = number.lstrip("+")
+    lang = resolve_locale(payload)
     if settings.whatsapp_template_name and (_must_use_template() or settings.whatsapp_template_name):
         return {
             "messaging_product": "whatsapp",
             "to": to,
             "type": "template",
-            "template": {"name": settings.whatsapp_template_name, "language": {"code": "en"}},
+            "template": {"name": settings.whatsapp_template_name, "language": {"code": lang}},
         }
     return {"messaging_product": "whatsapp", "to": to, "type": "text", "text": {"body": _preview_text(payload)}}
 
