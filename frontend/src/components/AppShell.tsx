@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
-const LINKS = [
-  { href: "/app", label: "Digest" },
-  { href: "/app/projects", label: "Projects" },
-  { href: "/app/flags", label: "Flags" },
-  { href: "/app/billing", label: "Billing" },
-  { href: "/app/onboarding", label: "Onboarding" },
-  { href: "/app/settings", label: "Settings" },
+const ALL = [
+  { href: "/app", label: "Digest", roles: ["owner", "ops", "reader"] },
+  { href: "/app/projects", label: "Projects", roles: ["owner", "ops", "reader"] },
+  { href: "/app/flags", label: "Flags", roles: ["owner", "ops", "reader"] },
+  { href: "/app/billing", label: "Billing", roles: ["owner", "ops"] },
+  { href: "/app/onboarding", label: "Onboarding", roles: ["owner", "ops"] },
+  { href: "/app/settings", label: "Settings", roles: ["owner", "ops", "reader"] },
 ];
 
 export default function AppShell({
@@ -25,6 +25,8 @@ export default function AppShell({
 }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const role = typeof window !== "undefined" ? localStorage.getItem("pb_role") || "reader" : "reader";
+  const links = ALL.filter((l) => l.roles.includes(role));
 
   function signOut() {
     localStorage.removeItem("pb_token");
@@ -39,13 +41,14 @@ export default function AppShell({
         <strong>PulseBuild</strong>
       </a>
       <nav className="shell-nav">
-        {LINKS.map((l) => (
+        {links.map((l) => (
           <a key={l.href} href={l.href} className={path === l.href ? "active" : ""}>
             {l.label}
           </a>
         ))}
       </nav>
       <div className="shell-actions">
+        <span className="chip">{role}</span>
         <button type="button" onClick={onTheme}>{theme === "dark" ? "Light" : "Dark"}</button>
         <button type="button" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>
         <button type="button" onClick={signOut}>Sign out</button>
@@ -53,7 +56,7 @@ export default function AppShell({
       </div>
       {open && (
         <div className="shell-drawer">
-          {LINKS.map((l) => (
+          {links.map((l) => (
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
           ))}
           <button type="button" onClick={signOut}>Sign out</button>

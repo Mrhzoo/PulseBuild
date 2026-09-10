@@ -15,6 +15,7 @@ export default function AppOnboardingPage() {
   const [name, setName] = useState("Marina Fitout");
   const [code, setCode] = useState("MARINA");
   const [forward, setForward] = useState("");
+  const [copied, setCopied] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [temp, setTemp] = useState("");
   const [wa, setWa] = useState("");
@@ -61,10 +62,19 @@ export default function AppOnboardingPage() {
     setDone(true);
   }
 
+  const forwardBanner = forward ? (
+    <p className="ask-banner">
+      {t.forward_tip} <strong>{forward}</strong>{" "}
+      <button type="button" onClick={() => { void navigator.clipboard.writeText(forward); setCopied(true); }}>{copied ? t.copied : t.copy_share}</button>{" "}
+      <a href="/app/projects">{t.upload}</a>
+    </p>
+  ) : null;
+
   if (done) {
     return (
       <article>
         <h1>{t.onboarding}</h1>
+        {forwardBanner}
         <p className="card">{t.onboarding_done} <a href="/app">{t.open_digest}</a></p>
       </article>
     );
@@ -73,20 +83,20 @@ export default function AppOnboardingPage() {
   return (
     <article>
       <h1>{t.onboarding}</h1>
-      <p className="muted">Step {step} / 4</p>
+      <p className="muted">{t.step_n.replace("{n}", String(step))}</p>
+      {forwardBanner}
       {step === 1 && (
         <div className="card">
           <h2>{t.create_project}</h2>
           <input value={name} onChange={(e) => setName(e.target.value)} />
           <input value={code} onChange={(e) => setCode(e.target.value)} />
           <button type="button" onClick={() => void createProject()}>{t.create_project}</button>
-          {forward && <p className="ev">{t.forward_tip} {forward}</p>}
         </div>
       )}
       {step === 2 && (
         <div className="card">
           <h2>{t.invite_reader}</h2>
-          <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} type="email" placeholder="reader@company.ae" />
+          <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} type="email" />
           <button type="button" onClick={() => void invite()}>{t.invite_reader}</button>
           {temp && <p className="ask-banner">{t.temp_password}: {temp}</p>}
           <p><button type="button" onClick={() => setStep(3)}>{t.skip}</button></p>
@@ -94,9 +104,9 @@ export default function AppOnboardingPage() {
       )}
       {step === 3 && (
         <div className="card">
-          <h2>WhatsApp</h2>
+          <h2>{t.save_whatsapp}</h2>
           <p className="sub">{t.whatsapp_best_effort}</p>
-          <input value={wa} onChange={(e) => setWa(e.target.value)} placeholder="+9715…" />
+          <input value={wa} onChange={(e) => setWa(e.target.value)} />
           <button type="button" onClick={() => void saveWa()}>{t.save_continue}</button>
         </div>
       )}
