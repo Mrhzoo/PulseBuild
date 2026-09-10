@@ -8,10 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import Principal, get_principal, require_write
 from app.db import get_session
-from app.models.orm import Flag, Finding, Project
+from app.models.orm import Flag, Finding, Project, SharePack
 from app.services.audit import write_audit
 from app.services.flags import create_flag, dismiss_flag, public_share_payload, revoke_share, share_url
-from app.services.packs import create_pack, is_pack_note
+from app.services.packs import create_pack, revoke_pack
 
 router = APIRouter()
 
@@ -45,7 +45,10 @@ async def list_flags(principal: Principal = Depends(get_principal), session: Asy
         if finding:
             project = await session.get(Project, finding.project_id)
             project_name = project.name if project else ""
-        out.append({"id": str(flag.id), "finding_id": str(flag.finding_id), "note": flag.note, "project_name": project_name, "title": finding.title if finding else "", "created_at": flag.created_at.isoformat() if flag.created_at else None, "share_url": share_url(flag.share_token) if flag.share_revoked_at is None else None, "share_revoked": flag.share_revoked_at is not None, "pack": is_pack_note(flag.note)})
+        out.append({"id": str(flag.id), "finding_id": str(flag.finding_id), "note": flag.note, "project_name": project_name, "title": finding.title if finding else "", "created_at": flag.created_at.isoformat() if flag.created_at else None, "share_url": share_url(flag.share_token) if flag.share_revoked_at is None else None, "share_revoked": flag.share_revoked_at is not None, "pack": False})
+    packs = (await session.execute(select(SharePack).where(SharePack.tenant_id == principal.tenant_id).order_by(SharePack.created_at.desc()))).scalars().all()
+    for pack in packs:
+        out.insert(0, {"id": str(pack.id), "finding_id": None, "note": pack.watermark, "project_name": "", "title": "Coordination pack", "created_at": pack.created_at.isoformat() if pack.created_at else None, "share_url": share_url(pack.share_token) if pack.revoked_at is None else None, "share_revoked": pack.revoked_at is not None, "pack": True})
     return out
 
 
@@ -58,6 +61,11 @@ async def make_pack(principal: Principal = Depends(require_write), session: Asyn
 
 @router.post("/flags/{flag_id}/dismiss")
 async def dismiss_open_flag(flag_id: UUID, payload: dict | None = None, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+    pack = await session.get(SharePack, flag_id)
+    if pack and pack.tenant_id == principal.tenant_id:
+        await revoke_pack(session, principal.tenant_id, principal.user_id, flag_id)
+        await session.commit()
+        return {"ok": True, "pack": True}
     await dismiss_flag(session, principal.tenant_id, principal.user_id, flag_id, (payload or {}).get("reason", ""))
     await session.commit()
     return {"ok": True}
@@ -65,6 +73,11 @@ async def dismiss_open_flag(flag_id: UUID, payload: dict | None = None, principa
 
 @router.post("/flags/{flag_id}/revoke-share")
 async def revoke_flag_share(flag_id: UUID, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+    pack = await session.get(SharePack, flag_id)
+    if pack and pack.tenant_id == principal.tenant_id:
+        await revoke_pack(session, principal.tenant_id, principal.user_id, flag_id)
+        await session.commit()
+        return {"ok": True, "pack": True}
     await revoke_share(session, principal.tenant_id, principal.user_id, flag_id)
     await session.commit()
     return {"ok": True}
