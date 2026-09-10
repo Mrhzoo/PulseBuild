@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import Principal, require_write
+from app.api.deps import Principal, get_principal, require_write
 from app.db import get_session
 from app.models.orm import Tenant, User
 
@@ -24,7 +24,7 @@ async def complete_onboarding(principal: Principal = Depends(require_write), ses
 
 
 @router.get("/onboarding/status")
-async def onboarding_status(principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+async def onboarding_status(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
     tenant = await session.get(Tenant, principal.tenant_id)
     if not tenant:
         raise HTTPException(404, "tenant")
@@ -43,11 +43,11 @@ async def _set_whatsapp(session: AsyncSession, principal: Principal, payload: di
 
 
 @router.post("/people/me/whatsapp")
-async def set_own_whatsapp(payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+async def set_own_whatsapp(payload: dict, principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
     return await _set_whatsapp(session, principal, payload)
 
 
 @router.patch("/users/me")
 @router.patch("/me")
-async def patch_self(payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+async def patch_self(payload: dict, principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
     return await _set_whatsapp(session, principal, payload)
