@@ -2,9 +2,11 @@
 
 SME project-risk intelligence for UAE construction first. Email is the SLA channel.
 
-- S0–S8 closed
-- **S9** marketing landing on `main` (`/` static, digest at `/app`)
-- Next: S10 light/dark — not started
+- S0–S9 closed
+- **S10** design system on `main` (dark/light + en/ar, shared tokens)
+- Next: S11 cinematic login — not started
+
+Theme: `localStorage.pb_theme` (`dark` default). Locale: `pb_locale`. See `docs/S10-design-system.md`.
 
 ## Local demo
 
