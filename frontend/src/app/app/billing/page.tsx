@@ -45,13 +45,14 @@ export default function AppBillingPage() {
     <article>
       <h1>{t.billing}</h1>
       <p className="sub">{t.whatsapp_best_effort}</p>
-      {flash && <p className="ask-banner">{flash === "canceled" ? t.billing_canceled : t.billing_ok}</p>}
+      {flash && <p className="ask-banner">{flash === "canceled" ? t.billing_canceled : flash === "stub" ? t.billing_stub_entitlement : t.billing_ok}</p>}
       {err && <p className="card">{t.billing_retry} <button type="button" onClick={() => void load()}>{t.refresh}</button></p>}
       {status && (
         <div className="dash-card">
           <p>{String(status.plan)} · {String(status.billing_status)} · AED</p>
           <p>{t.projects_quota}: {String(status.projects_used)} / {String(status.project_quota)}</p>
-          {status.stub ? <p className="muted">{t.billing_stub}</p> : <p className="muted">Stripe live</p>}
+          {status.quota_hit ? <p className="ask-banner">{t.quota_full}</p> : null}
+          {status.stub ? <p className="muted">{t.billing_stub_entitlement}</p> : <p className="muted">Stripe live</p>}
           {owner && (
             <div className="dash-actions">
               <button type="button" onClick={() => void post("/api/billing/checkout", {})}>{t.upgrade}</button>
