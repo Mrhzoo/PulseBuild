@@ -46,5 +46,11 @@
   "send_ok": "Briefing queued",
   "send_failed": "Could not send briefing.",
   "copy_share": "Copy share link",
-  "copied": "Copied"
+  "copied": "Copied",
+  "quota_full": "Project pack full — manage billing",
+  "upload_unassigned": "Upload without a project",
+  "unassigned": "Unassigned",
+  "reassign": "Reassign to project",
+  "run_agents": "Run agents",
+  "open_digest": "Open today’s digest"
 }
