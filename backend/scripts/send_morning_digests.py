@@ -1,4 +1,4 @@
-"""Nightly briefing: run agents → build digest → email. From backend/: python -m scripts.send_morning_digests"""
+"""Nightly briefing: agents → digest → email SLA → optional WhatsApp. From backend/: python -m scripts.send_morning_digests"""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from app.digest.builder import build_digest, persist_digest
 from app.digest.emailer import send_digest_email
 from app.digest.recipients import briefing_recipients
 from app.models.orm import Document, Event, Project, Tenant
+from app.notify.whatsapp import notify_digest, whatsapp_numbers
 from app.services.audit import write_audit
 from app.services.findings_run import run_project_agents
 
@@ -45,8 +46,16 @@ async def run() -> None:
             if not recipients:
                 continue
             via = await send_digest_email(payload, recipients)
-            await persist_digest(session, tenant.id, payload, delivered_via="email+web" if via == "email" else via)
-            await write_audit(session, tenant_id=tenant.id, actor="system:cron", action="digest.send", entity_type="digest", entity_id=payload.digest_id or "", after={"via": via})
+            delivered = "email+web" if via == "email" else via
+            try:
+                numbers = await whatsapp_numbers(session, tenant.id)
+                wa = await notify_digest(payload, numbers)
+                if wa in {"whatsapp", "stub"}:
+                    delivered = f"{delivered}+whatsapp"
+            except Exception:
+                log.exception("whatsapp failed tenant=%s — email already sent", tenant.id)
+            await persist_digest(session, tenant.id, payload, delivered_via=delivered)
+            await write_audit(session, tenant_id=tenant.id, actor="system:cron", action="digest.send", entity_type="digest", entity_id=payload.digest_id or "", after={"via": delivered})
         await session.commit()
 
 
