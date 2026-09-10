@@ -30,7 +30,7 @@ def test_empty_findings_no_fake_act():
 
 def test_act_capped_and_pointer_required():
     pid = uuid4()
-    findings = [_finding(id=uuid4(), project_id=pid, severity=Severity.ACT, title=f"A{i}", evidence_pointer="doc#p1") for i in range(7)]
+    findings = [_finding(id=uuid4(), project_id=pid, severity=Severity.ACT, title=f"A{i}", evidence_pointer=f"doc#p{i}") for i in range(7)]
     findings.append(_finding(id=uuid4(), project_id=pid, severity=Severity.ACT, title="No pointer", evidence_pointer="  "))
     payload = assemble_payload(tenant_name="Demo", for_date=date(2026, 9, 7), findings=findings, projects=[SimpleNamespace(id=pid, name="Marina")], unassigned=2)
     assert len(payload.act) == 5
