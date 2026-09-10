@@ -111,5 +111,7 @@
   "inbound_stub": "Inbound is a stub. Send yourself a test after Postmark inbound is wired.",
   "inbound_test": "Send yourself a test to the project forward address after the webhook is live.",
   "ocr_ticket": "Open OCR ticket",
-  "ocr_ticket_ok": "OCR ticket opened — text is not invented."
+  "ocr_ticket_ok": "OCR ticket opened — text is not invented.",
+  "pilot_checklist": "Pilot checklist",
+  "pilot_checklist_sub": "Email SLA, cron, Stripe, optional WhatsApp, forward address. Cron is confirmed by ops."
 }
