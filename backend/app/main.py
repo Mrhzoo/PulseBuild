@@ -16,15 +16,13 @@ from app.config import settings
 
 
 def cors_origins() -> list[str]:
-    origins = {
-        (settings.web_base_url or "").rstrip("/"),
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    }
+    origins = {(settings.web_base_url or "").rstrip("/")}
+    if settings.app_env != "production":
+        origins.update({"http://localhost:3000", "http://127.0.0.1:3000"})
     return [o for o in origins if o]
 
 
-app = FastAPI(title="PulseBuild", version="0.1.8")
+app = FastAPI(title="PulseBuild", version="0.2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins(),
