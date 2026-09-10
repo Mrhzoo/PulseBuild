@@ -9,7 +9,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.orm import Flag, Finding, Project, Severity, Tenant
-from app.services.flags import new_share_token, share_url, write_audit
+from app.services.audit import write_audit
+from app.services.flags import new_share_token, share_url
 
 PACK_PREFIX = "PACK:"
 
