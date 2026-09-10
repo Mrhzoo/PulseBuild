@@ -73,5 +73,18 @@
   "finish": "Finish",
   "settings": "Settings",
   "prefs": "Preferences",
-  "people": "People"
+  "people": "People",
+  "billing_retry": "Could not load billing. Retry.",
+  "empty_projects": "No projects yet. Create one or finish setup.",
+  "save_whatsapp": "Save WhatsApp number",
+  "meta_title": "Meta WhatsApp",
+  "meta_manual": "Manual env checklist. Nothing here is marked live.",
+  "meta_unchecked": "configure in env",
+  "meta_step_app": "Meta Business + WhatsApp product",
+  "meta_step_template": "Approved template name",
+  "meta_step_phone": "Phone number id",
+  "meta_step_token": "Permanent token",
+  "meta_step_webhook": "Verify webhook",
+  "meta_step_enable": "ENABLE_WHATSAPP_PUSH only after approval",
+  "meta_step_session": "Session text off in production"
 }
