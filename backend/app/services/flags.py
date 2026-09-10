@@ -68,6 +68,9 @@ async def public_share_payload(session: AsyncSession, token: str) -> dict:
     flag = (await session.execute(select(Flag).where(Flag.share_token == token))).scalar_one_or_none()
     if not flag or flag.share_revoked_at is not None or flag.dismissed_at is not None:
         raise HTTPException(410, "share unavailable")
+    from app.services.packs import is_pack_note, pack_payload
+    if is_pack_note(flag.note):
+        return await pack_payload(session, flag)
     finding = await session.get(Finding, flag.finding_id)
     if not finding:
         raise HTTPException(410, "share unavailable")
