@@ -31,12 +31,23 @@ async def onboarding_status(principal: Principal = Depends(require_write), sessi
     return {"completed": bool(tenant.onboarding_completed_at), "onboarding_completed_at": tenant.onboarding_completed_at.isoformat() if tenant.onboarding_completed_at else None, "company": tenant.name}
 
 
-@router.post("/people/me/whatsapp")
-async def set_own_whatsapp(payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+async def _set_whatsapp(session: AsyncSession, principal: Principal, payload: dict) -> dict:
     user = await session.get(User, principal.user_id)
     if not user:
         raise HTTPException(404, "user")
-    number = (payload.get("whatsapp_e164") or "").strip()
-    user.whatsapp_e164 = number or None
+    if "whatsapp_e164" in payload:
+        number = (payload.get("whatsapp_e164") or "").strip()
+        user.whatsapp_e164 = number or None
     await session.commit()
     return {"whatsapp_e164": user.whatsapp_e164, "note": "WhatsApp is best-effort — email is the morning SLA"}
+
+
+@router.post("/people/me/whatsapp")
+async def set_own_whatsapp(payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+    return await _set_whatsapp(session, principal, payload)
+
+
+@router.patch("/users/me")
+@router.patch("/me")
+async def patch_self(payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+    return await _set_whatsapp(session, principal, payload)
