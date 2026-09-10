@@ -26,25 +26,31 @@ export default async function SharePage({ params }: { params: { token: string } 
 
   if (missing || !card) {
     return (
-      <>
+      <article className="mkt-page" style={{ margin: "12vh auto", padding: "0 24px" }}>
+        <span className="logo-circle">PB</span>
         <h1>Link unavailable</h1>
         <p className="sub">This share was revoked or never existed. No extra project data is shown.</p>
-        <p className="muted">Shared from PulseBuild</p>
-      </>
+        <p className="muted">Shared from PulseBuild · proof link, not a live portal.</p>
+      </article>
     );
   }
 
   return (
-    <>
+    <article className="mkt-page" style={{ margin: "12vh auto", padding: "0 24px" }}>
+      <span className="logo-circle">PB</span>
       <p className="muted">{card.company}</p>
       <h1>{card.title}</h1>
-      <p className="sub">{card.severity.toUpperCase()} · {card.project_name} · {Math.round(card.confidence * 100)}%</p>
-      <article className={`card ${card.severity}`}>
+      <div className={`dash-card ${card.severity === "act" ? "act" : "watch"}`}>
+        <div className="dash-meta">
+          <span className="sev-pill">{card.severity}</span>
+          <span>{card.project_name}</span>
+          <span className="conf-pill">{Math.round(card.confidence * 100)}%</span>
+        </div>
         <p className="why">{card.why_it_hits_us}</p>
         <p className="ev">{card.evidence_snippet} · {card.evidence_pointer}</p>
-        {card.note && <p>Note: {card.note}</p>}
-      </article>
+        {card.note && <p>{card.note}</p>}
+      </div>
       <p className="muted">Shared from PulseBuild · proof link, not a live portal.</p>
-    </>
+    </article>
   );
 }
