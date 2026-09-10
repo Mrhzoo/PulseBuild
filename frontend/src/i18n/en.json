@@ -14,6 +14,15 @@
   "invite_reader": "Invite a reader",
   "forward_tip": "Forward project mail to the address on the project.",
   "login": "Sign in",
+  "logout": "Sign out",
+  "login_failed": "Email or password is wrong.",
+  "email": "Email",
+  "password": "Password",
+  "projects": "Projects",
+  "upload": "Upload a file",
+  "flags": "Flags",
+  "errors_unavailable": "Digest is unavailable. No invented risks are shown.",
+  "sign_in_link": "Sign in to load today’s briefing.",
   "flag_this": "This affects us",
   "dismiss": "Dismiss"
 }
