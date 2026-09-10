@@ -1,17 +1,22 @@
-"""Seed a UAE demo tenant. Usage: python -m scripts.seed"""
+"""Seed a UAE demo tenant. Usage: python -m scripts.seed — refused in production."""
 
 from __future__ import annotations
 
 import asyncio
+import sys
 
 from sqlalchemy import select
 
+from app.config import settings
 from app.db import SessionLocal
 from app.models.orm import Country, Currency, Membership, Project, Role, Tenant, User
 from app.security import hash_password
 
 
 async def seed() -> None:
+    if settings.app_env == "production":
+        print("refusing seed in production", file=sys.stderr)
+        raise SystemExit(2)
     async with SessionLocal() as session:
         existing = (
             await session.execute(select(User).where(User.email == "owner@demo.pulsebuild.local"))
