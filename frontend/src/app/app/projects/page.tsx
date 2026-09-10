@@ -85,17 +85,20 @@ export default function ProjectsPage() {
     <article>
       <h1>{t.projects}</h1>
       <p className="sub">{t.forward_tip}</p>
-      {quota && <p className="card">{quota} <a href="/billing">{t.billing}</a></p>}
+      {quota && <p className="card">{quota} <a href="/app/billing">{t.billing}</a></p>}
       {note && <p className="muted">{note}</p>}
       {runOut && <p className="muted">{runOut} — <a href="/app">{t.open_digest}</a></p>}
+      {projects.length === 0 && (
+        <p className="card">{t.empty_projects} <a href="/app/onboarding">{t.onboarding}</a></p>
+      )}
 
       {canWrite && (
         <form className="card" onSubmit={(e) => void createProject(e)}>
           <h2>{t.create_project}</h2>
-          <label>{t.company_name}</label>
-          <input name="name" required />
-          <label>Code</label>
-          <input name="code" required />
+          <label htmlFor="proj-name">{t.company_name}</label>
+          <input id="proj-name" name="name" required />
+          <label htmlFor="proj-code">Code</label>
+          <input id="proj-code" name="code" required />
           <button type="submit">{t.create_project}</button>
         </form>
       )}
