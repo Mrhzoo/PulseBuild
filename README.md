@@ -2,11 +2,11 @@
 
 SME project-risk intelligence for UAE construction first. Email is the SLA channel.
 
-- S0–S9 closed
-- **S10** design system on `main` (dark/light + en/ar, shared tokens)
-- Next: S11 cinematic login — not started
+- S0–S10 closed
+- **S11** cinematic login + app shell on `main`
+- Next: S12 pricing — not started
 
-Theme: `localStorage.pb_theme` (`dark` default). Locale: `pb_locale`. See `docs/S10-design-system.md`.
+Theme: `pb_theme`. Locale: `pb_locale`. See `docs/S10-design-system.md` and `docs/S11-auth-shell.md`.
 
 ## Local demo
 
@@ -18,7 +18,7 @@ cd ../frontend && npm run dev
 ```
 
 - Landing: http://localhost:3000/
-- Digest: http://localhost:3000/app
 - Login: http://localhost:3000/login
+- Digest: http://localhost:3000/app
 
 Seed: `owner@demo.pulsebuild.local` / `demo-owner-pass`
