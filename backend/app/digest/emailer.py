@@ -1,4 +1,4 @@
-"""Postmark when token is set; otherwise a local stub in development."""
+"""Postmark when token is set; stub only in development or EMAIL_STUB=true."""
 
 from __future__ import annotations
 
@@ -8,6 +8,14 @@ import httpx
 
 from app.config import settings
 from app.digest.payload import DigestPayload, resolve_locale, subject_line
+
+
+def email_configured() -> bool:
+    return bool((settings.postmark_server_token or "").strip())
+
+
+def allow_email_stub() -> bool:
+    return bool(settings.email_stub) or settings.app_env == "development"
 
 
 def _copy(locale: str) -> dict[str, str]:
@@ -91,17 +99,16 @@ def write_stub(payload: DigestPayload, recipients: list[str]) -> Path:
 async def send_digest_email(payload: DigestPayload, recipients: list[str]) -> str:
     if not recipients:
         raise RuntimeError("no recipients")
-    token = (settings.postmark_server_token or "").strip()
-    if token:
+    if email_configured():
         async with httpx.AsyncClient(timeout=20) as client:
             response = await client.post(
                 "https://api.postmarkapp.com/email",
-                headers={"Accept": "application/json", "Content-Type": "application/json", "X-Postmark-Server-Token": token},
+                headers={"Accept": "application/json", "Content-Type": "application/json", "X-Postmark-Server-Token": settings.postmark_server_token.strip()},
                 json={"From": settings.mail_from, "To": ", ".join(recipients), "Subject": subject_line(payload), "HtmlBody": _html(payload), "TextBody": _text(payload), "MessageStream": "outbound"},
             )
             response.raise_for_status()
         return "email"
-    if settings.app_env == "development":
+    if allow_email_stub():
         write_stub(payload, recipients)
         return "stub"
     raise RuntimeError("POSTMARK_SERVER_TOKEN missing; refusing to pretend the briefing was sent")
