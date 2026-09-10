@@ -52,7 +52,7 @@ export default function AppBillingPage() {
           <p>{String(status.plan)} · {String(status.billing_status)} · AED</p>
           <p>{t.projects_quota}: {String(status.projects_used)} / {String(status.project_quota)}</p>
           {status.quota_hit ? <p className="ask-banner">{t.quota_full}</p> : null}
-          {status.stub ? <p className="muted">{t.billing_stub_entitlement}</p> : <p className="muted">Stripe live</p>}
+          {status.stub ? <p className="muted">{t.billing_stub_entitlement}</p> : <p className="muted">{t.stripe_live}</p>}
           {owner && (
             <div className="dash-actions">
               <button type="button" onClick={() => void post("/api/billing/checkout", {})}>{t.upgrade}</button>
