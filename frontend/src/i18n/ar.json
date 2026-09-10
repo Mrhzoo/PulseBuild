@@ -86,5 +86,9 @@
   "meta_step_token": "الرمز الدائم",
   "meta_step_webhook": "التحقق من الويبهوك",
   "meta_step_enable": "ENABLE بعد الموافقة فقط",
-  "meta_step_session": "إغلاق نص الجلسة في الإنتاج"
+  "meta_step_session": "إغلاق نص الجلسة في الإنتاج",
+  "last_data": "آخر ملف",
+  "step_n": "الخطوة {n} / 4",
+  "no_new_findings": "لا بنود جديدة — نفس البطاقات أو لا جديد.",
+  "billing_stub_entitlement": "دفع تجريبي — بلا رسم وبلا تغيير حصة حتى يُطبّق ويبهوك."
 }
