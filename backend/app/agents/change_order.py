@@ -16,11 +16,13 @@ def run_change_order(snapshot: ProjectSnapshot) -> list[AgentFinding]:
     if not hit:
         return []
     strong = any(phrase in hit.blob for phrase in STRONG)
+    qty = "qty" in hit.blob or "quantity" in hit.blob or "كمية" in hit.text
+    title = "Possible variation with quantity change" if qty else "Possible variation"
     return [
         AgentFinding(
             agent="change_order",
             proposed_severity="watch",
-            title="Possible variation",
+            title=title,
             why_it_hits_us=(
                 "A variation instruction is named. Confirm scope and quantity before it becomes an argument."
                 if strong

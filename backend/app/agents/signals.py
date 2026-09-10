@@ -15,6 +15,8 @@ DATEISH = re.compile(
     re.I,
 )
 AMOUNTISH = re.compile(r"(AED|SAR|USD|د.\إ|ريال)\s*[\d,]+|[\d,]+\s*(AED|SAR|USD)", re.I)
+ACTIVITYISH = re.compile(r"\b(?:activity|task|item)\s*[:#]\s*([A-Za-z0-9][A-Za-z0-9 \-]{2,40})", re.I)
+IPCISH = re.compile(r"\bIPC[- ]?\d+\b", re.I)
 
 
 @dataclass
@@ -62,4 +64,21 @@ def has_date_window(text: str) -> bool:
 
 def echoed_amount(text: str) -> str | None:
     match = AMOUNTISH.search(text)
+    return match.group(0) if match else None
+
+
+def echoed_date_window(text: str) -> str | None:
+    match = DATEISH.search(text)
+    return match.group(0) if match else None
+
+
+def echoed_activity(text: str, payload_activity: str | None = None) -> str | None:
+    if payload_activity and payload_activity.strip():
+        return payload_activity.strip()[:48]
+    match = ACTIVITYISH.search(text)
+    return match.group(1).strip()[:48] if match else None
+
+
+def echoed_ipc(text: str) -> str | None:
+    match = IPCISH.search(text)
     return match.group(0) if match else None

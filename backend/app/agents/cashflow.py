@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.agents.signals import collect_signals, echoed_amount, first_match
+from app.agents.signals import collect_signals, echoed_amount, echoed_ipc, first_match
 from app.schemas.agents import AgentFinding, ProjectSnapshot
 
 KEYWORDS = ("ipc", "retention", "payment", "certified", "overdue", "certificate", "احتجاز", "مستخلص", "دفعة")
@@ -13,14 +13,28 @@ def run_cashflow(snapshot: ProjectSnapshot) -> list[AgentFinding]:
         return []
     strong = any(word in hit.blob for word in STRONG)
     amount = echoed_amount(hit.text)
-    why = "Cash language appeared. Review whether an IPC or retention event hits in 7–14 days."
+    ipc = echoed_ipc(hit.text)
+    if ipc and amount:
+        title = f"{ipc} / retention names {amount}"
+    elif ipc:
+        title = f"{ipc} payment or retention signal"
+    elif amount:
+        title = f"Payment language names {amount}"
+    else:
+        title = "Payment or retention signal"
     if amount:
         why = f"Payment language names {amount} already in the file. Do not treat this as a calculated figure."
+        if ipc:
+            why = f"{ipc} names {amount} already in the file. Do not treat this as a calculated figure."
+    elif ipc:
+        why = f"{ipc} is named. Review whether certification or retention hits in 7–14 days."
+    else:
+        why = "Cash language appeared. Review whether an IPC or retention event hits in 7–14 days."
     return [
         AgentFinding(
             agent="cashflow",
             proposed_severity="act" if strong else "watch",
-            title="Payment or retention signal",
+            title=title,
             why_it_hits_us=why,
             evidence={"snippet": hit.text[:280], "pointer": hit.pointer},
             confidence=0.76 if strong else 0.52,
