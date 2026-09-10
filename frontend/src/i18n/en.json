@@ -70,6 +70,7 @@
   "billing_stub": "Stub checkout — no live charge",
   "billing_ok": "Checkout returned.",
   "billing_canceled": "Checkout canceled.",
+  "billing_not_configured": "Billing is not configured. Set Stripe keys or keep BILLING_STUB for local demo.",
   "project_pack": "+ project pack",
   "customer_portal": "Customer portal",
   "onboarding_done": "You’re set.",
