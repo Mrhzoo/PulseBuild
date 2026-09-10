@@ -30,9 +30,34 @@ class DigestPayload(BaseModel):
     ask: str | None = None
     digest_id: str | None = None
     delivered_via: str = "web"
+    locale: str = "en"
+
+
+def _has_arabic(*parts: str) -> bool:
+    return any(any("\u0600" <= ch <= "\u06FF" for ch in part) for part in parts if part)
+
+
+def resolve_locale(payload: DigestPayload, preferred: str | None = None) -> str:
+    if preferred in {"ar", "en"}:
+        payload.locale = preferred
+        return preferred
+    if payload.locale in {"ar", "en"} and payload.locale == "ar":
+        return "ar"
+    blob = [payload.ask or "", payload.company, payload.channel_promise]
+    blob.extend(c.title for c in payload.act + payload.watch)
+    if _has_arabic(*blob):
+        payload.locale = "ar"
+        return "ar"
+    payload.locale = payload.locale if payload.locale in {"ar", "en"} else "en"
+    return payload.locale
 
 
 def subject_line(payload: DigestPayload) -> str:
+    locale = resolve_locale(payload)
+    if locale == "ar":
+        if payload.act:
+            return f"PulseBuild · {payload.date} · {len(payload.act)} بنود إجراء"
+        return f"PulseBuild · {payload.date} · صباح هادئ"
     if payload.act:
         return f"PulseBuild · {payload.date} · {len(payload.act)} Act items"
     return f"PulseBuild · {payload.date} · Quiet morning"
