@@ -8,6 +8,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.digest.cues import cue_lines
 from app.digest.payload import DigestCard, DigestPayload, coaching_ask
 from app.models.orm import Digest, Document, Event, Finding, Project, Severity, Tenant
 
@@ -62,6 +63,7 @@ def assemble_payload(*, tenant_name: str, for_date: date, findings: list[Finding
         quiet_projects=quiet,
         unassigned_count=unassigned,
         ask=coaching_ask(unassigned, [p.name for p in projects], has_material),
+        cues=cue_lines(act + watch),
     )
 
 
