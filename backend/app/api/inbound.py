@@ -12,10 +12,11 @@ from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Uploa
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import Principal, get_principal
 from app.config import settings
 from app.db import get_session
 from app.ingest.pipeline import ingest_document
-from app.models.orm import Document, Tenant
+from app.models.orm import Document, Project, Tenant
 from app.services.audit import write_audit
 from app.services.crypto_store import write_encrypted
 from app.services.matching import match_inbound
@@ -33,6 +34,26 @@ def _check_secret(header_value: str | None) -> None:
     if settings.app_env != "development":
         raise HTTPException(401, "POSTMARK_INBOUND_SECRET required")
     logger.warning("inbound email accepted without secret because APP_ENV=development")
+
+
+@router.get("/inbound/status")
+async def inbound_status(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
+    secret = bool((settings.postmark_inbound_secret or "").strip())
+    projects = (await session.execute(select(Project).where(Project.tenant_id == principal.tenant_id))).scalars().all()
+    last = (await session.execute(select(Document).where(Document.tenant_id == principal.tenant_id, Document.source_type == "email").order_by(Document.created_at.desc()))).scalars().first()
+    return {
+        "configured": secret,
+        "app_env": settings.app_env,
+        "webhook_path": "/api/inbound/email",
+        "note": "Send yourself a test after Postmark inbound points at /api/inbound/email. Until then this is a stub.",
+        "checklist": [
+            {"id": "secret", "label": "POSTMARK_INBOUND_SECRET set", "ok": secret},
+            {"id": "webhook", "label": "Postmark inbound webhook → POST /api/inbound/email", "ok": False},
+            {"id": "forward", "label": "Forward a project address to yourself", "ok": bool(projects)},
+        ],
+        "forwards": [{"project": p.name, "forward_address": p.forward_address} for p in projects if p.forward_address],
+        "last_inbound": {"filename": last.filename, "parse_status": last.parse_status} if last else None,
+    }
 
 
 @router.post("/inbound/email")
