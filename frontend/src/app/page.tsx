@@ -40,7 +40,7 @@ function RiskCard({ card, canWrite }: { card: Card; canWrite: boolean }) {
       headers: { Authorization: `Bearer ${token()}`, "Content-Type": "application/json" },
       body: JSON.stringify({ note }),
     });
-    if (res.ok) setShare((await res.json()).share_url);
+    if (res.ok) setShare((await res.json()).share_url || `${window.location.origin}/share/${(await res.clone().json().catch(() => ({}))).share_token || ""}`);
   }
 
   async function dismiss() {
@@ -67,11 +67,7 @@ function RiskCard({ card, canWrite }: { card: Card; canWrite: boolean }) {
           <button type="button" onClick={() => void dismiss()}>Dismiss</button>
         </div>
       )}
-      {share && (
-        <p className="ev">
-          Share link ready — <button type="button" onClick={() => void navigator.clipboard.writeText(share)}>Copy share link</button>
-        </p>
-      )}
+      {share && <p className="ev">Share link ready</p>}
     </article>
   );
 }
@@ -79,6 +75,7 @@ function RiskCard({ card, canWrite }: { card: Card; canWrite: boolean }) {
 export default function HomePage() {
   const [digest, setDigest] = useState<Digest | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needLogin, setNeedLogin] = useState(false);
   const [role, setRole] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -88,9 +85,13 @@ export default function HomePage() {
     if (t) headers.Authorization = `Bearer ${t}`;
     try {
       const res = await fetch(`${API}/api/digest/today`, { cache: "no-store", headers });
-      if (res.ok) setDigest(await res.json());
-      else if (res.status === 401) setError("Sign in to load today’s briefing.");
-      else setError("Digest is unavailable. No fake risks are shown.");
+      if (res.ok) {
+        setDigest(await res.json());
+        setNeedLogin(false);
+      } else if (res.status === 401) {
+        setNeedLogin(true);
+        setError(null);
+      } else setError("Digest is unavailable. No invented risks are shown.");
     } catch {
       setError("API is not connected yet. Start the backend, then refresh.");
     }
@@ -117,6 +118,11 @@ export default function HomePage() {
     <>
       <h1>Today’s digest</h1>
       <p className="sub">{digest?.channel_promise || "Morning briefing by email."} What threatens cash, crew, or margin this week.</p>
+      {needLogin && (
+        <div className="card">
+          <a href="/login">Sign in to load today’s briefing.</a>
+        </div>
+      )}
       {canSend && (
         <p>
           <button type="button" onClick={() => void sendBriefing()} disabled={sending}>{sending ? "Sending…" : "Send morning briefing"}</button>{" "}
@@ -125,7 +131,7 @@ export default function HomePage() {
       )}
       {error && <div className="card">{error}</div>}
       {digest && digest.act.length === 0 && digest.watch.length === 0 && (
-        <div className="card">Quiet morning. Upload a schedule, IPC, or variation email if this project should have news.</div>
+        <div className="card">Quiet morning. Upload a schedule, last IPC, or a variation email.</div>
       )}
       {digest?.act.map((c) => (
         <RiskCard key={c.id} card={c} canWrite={canSend} />

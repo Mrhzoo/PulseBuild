@@ -2,8 +2,21 @@
 
 SME project-risk intelligence for UAE construction first. Email is the SLA channel.
 
-- S0–S6 closed
-- **S7** repeatable product on `main` (AED billing, Arabic UI, Meta WhatsApp checklist, assisted-ops tickets, onboarding)
-- Next: network effects / ops polish — no further stage until review
+- S0–S7 closed
+- **S8** remaining product on `main` (human auth, WhatsApp self-update, i18n parity)
+- Next: visual rebuild (S9+) — not started
 
-See `docs/S7-repeatable.md` and `docs/S7-meta-whatsapp.md`.
+## Local demo
+
+```bash
+docker compose up -d
+cd backend && alembic upgrade head && python -m scripts.seed
+uvicorn app.main:app --reload --port 8000
+```
+
+Seed logins:
+
+- Owner `owner@demo.pulsebuild.local` / `demo-owner-pass`
+- Reader `reader@demo.pulsebuild.local` / `demo-reader-pass`
+
+Open `/login`, then today’s digest. See `docs/S8-auth.md`.
