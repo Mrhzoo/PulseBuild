@@ -16,7 +16,7 @@ from app.security import hash_password
 from app.services.audit import write_audit
 from app.services.billing import enforce_project_quota
 from app.services.crypto_store import write_encrypted
-from app.services.findings_run import run_project_agents
+from app.services.findings_run import maybe_auto_run, run_project_agents
 from app.services.matching import match_inbound
 from app.services.tenancy import require_project_for_tenant
 
@@ -82,9 +82,10 @@ async def upload_document(file: UploadFile = File(...), project_id: str | None =
     await session.flush()
     events = await ingest_document(session, principal.tenant_id, doc.id)
     await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="document.upload", entity_type="document", entity_id=str(doc.id), after={"filename": file.filename, "project_id": str(assigned) if assigned else None})
+    agents_run = await maybe_auto_run(session, principal.tenant_id, doc.project_id, doc.parse_status)
     await session.commit()
     await session.refresh(doc)
-    return {"id": str(doc.id), "project_id": str(doc.project_id) if doc.project_id else None, "unassigned": doc.project_id is None, "parse_status": doc.parse_status, "event_count": len(events), "match_method": match.method}
+    return {"id": str(doc.id), "project_id": str(doc.project_id) if doc.project_id else None, "unassigned": doc.project_id is None, "parse_status": doc.parse_status, "event_count": len(events), "match_method": match.method, "agents_run": agents_run}
 
 
 @router.post("/documents/{document_id}/reassign")
@@ -98,8 +99,9 @@ async def reassign_document(document_id: UUID, payload: dict, principal: Princip
         await require_project_for_tenant(session, principal.tenant_id, new_id)
     doc.project_id = new_id
     await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="document.reassign", entity_type="document", entity_id=str(doc.id), before={"project_id": before}, after={"project_id": str(new_id) if new_id else None})
+    agents_run = await maybe_auto_run(session, principal.tenant_id, new_id, doc.parse_status)
     await session.commit()
-    return {"ok": True, "project_id": str(new_id) if new_id else None}
+    return {"ok": True, "project_id": str(new_id) if new_id else None, "agents_run": agents_run}
 
 
 @router.post("/documents/{document_id}/reingest")
@@ -109,8 +111,9 @@ async def reingest_document(document_id: UUID, principal: Principal = Depends(re
         raise HTTPException(404, "document")
     events = await ingest_document(session, principal.tenant_id, doc.id)
     await write_audit(session, tenant_id=principal.tenant_id, actor=str(principal.user_id), action="document.reingest", entity_type="document", entity_id=str(doc.id), after={"parse_status": doc.parse_status, "event_count": len(events)})
+    agents_run = await maybe_auto_run(session, principal.tenant_id, doc.project_id, doc.parse_status)
     await session.commit()
-    return {"id": str(doc.id), "parse_status": doc.parse_status, "event_count": len(events), "project_id": str(doc.project_id) if doc.project_id else None}
+    return {"id": str(doc.id), "parse_status": doc.parse_status, "event_count": len(events), "project_id": str(doc.project_id) if doc.project_id else None, "agents_run": agents_run}
 
 
 @router.get("/projects/{project_id}/events")
