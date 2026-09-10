@@ -5,7 +5,11 @@ import en from "../../i18n/en.json";
 import ar from "../../i18n/ar.json";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-const DEV = process.env.NEXT_PUBLIC_APP_ENV === "development" || (typeof window !== "undefined" && window.location.hostname === "localhost");
+function isLocalHost(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+}
+const DEV = process.env.NEXT_PUBLIC_APP_ENV === "development" || (typeof window !== "undefined" && isLocalHost());
 const VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4";
 
 export default function LoginPage() {
