@@ -73,5 +73,18 @@
   "finish": "إنهاء",
   "settings": "الإعدادات",
   "prefs": "التفضيلات",
-  "people": "الأشخاص"
+  "people": "الأشخاص",
+  "billing_retry": "تعذر تحميل الفوترة. أعد.",
+  "empty_projects": "لا مشاريع بعد. أنشئ مشروعاً أو أكمل الإعداد.",
+  "save_whatsapp": "حفظ رقم واتساب",
+  "meta_title": "واتساب ميتا",
+  "meta_manual": "قائمة يدوية. لا نعتبر أي بند متصلاً.",
+  "meta_unchecked": "ضبط في البيئة",
+  "meta_step_app": "تطبيق ميتا + منتج واتساب",
+  "meta_step_template": "اسم القالب المعتمد",
+  "meta_step_phone": "معرّف رقم الهاتف",
+  "meta_step_token": "الرمز الدائم",
+  "meta_step_webhook": "التحقق من الويبهوك",
+  "meta_step_enable": "ENABLE بعد الموافقة فقط",
+  "meta_step_session": "إغلاق نص الجلسة في الإنتاج"
 }
