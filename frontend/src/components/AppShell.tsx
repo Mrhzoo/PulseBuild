@@ -7,8 +7,9 @@ const LINKS = [
   { href: "/app", label: "Digest" },
   { href: "/app/projects", label: "Projects" },
   { href: "/app/flags", label: "Flags" },
-  { href: "/billing", label: "Billing" },
-  { href: "/onboarding", label: "Onboarding" },
+  { href: "/app/billing", label: "Billing" },
+  { href: "/app/onboarding", label: "Onboarding" },
+  { href: "/app/settings", label: "Settings" },
 ];
 
 export default function AppShell({
