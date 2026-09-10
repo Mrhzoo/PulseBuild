@@ -26,6 +26,7 @@ type Digest = {
   watch: Card[];
   quiet_projects: string[];
   unassigned_count: number;
+  last_data_received?: string | null;
   ask: string | null;
 };
 
@@ -145,6 +146,13 @@ export default function DigestAppPage() {
         <p className="muted">{digest?.date} · {digest?.company || digest?.tenant || ""}</p>
         <h1>{t.digest_title}</h1>
         <p className="sub">{digest?.channel_promise || t.channel_promise}</p>
+        {digest && (
+          <p className="muted">
+            {t.last_data}: {digest.last_data_received || "—"}
+            {" · "}
+            {t.unassigned}: {digest.unassigned_count}
+          </p>
+        )}
         {canWrite && (
           <div className="dash-toolbar">
             <button type="button" onClick={() => void sendBriefing()} disabled={sending}>{sending ? t.sending : t.send_briefing}</button>
