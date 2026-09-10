@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const LINKS = [
   { href: "/app", label: "Digest" },
-  { href: "/app#projects", label: "Projects" },
+  { href: "/app/projects", label: "Projects" },
   { href: "/flags", label: "Flags" },
   { href: "/billing", label: "Billing" },
   { href: "/onboarding", label: "Onboarding" },
@@ -39,7 +39,7 @@ export default function AppShell({
       </a>
       <nav className="shell-nav">
         {LINKS.map((l) => (
-          <a key={l.href} href={l.href} className={path === l.href || (l.href === "/app" && path === "/app") ? "active" : ""}>
+          <a key={l.href} href={l.href} className={path === l.href ? "active" : ""}>
             {l.label}
           </a>
         ))}
