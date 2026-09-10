@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const PUBLIC = ["/", "/login", "/product", "/case-studies", "/contact", "/pricing"];
 
@@ -15,13 +15,12 @@ function isPublic(path: string) {
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
-  const params = useSearchParams();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("pb_token");
-    const next = params.get("next") || "/app";
-    const safeNext = next.startsWith("/") ? next : "/app";
+    const raw = new URLSearchParams(window.location.search).get("next") || "/app";
+    const safeNext = raw.startsWith("/") ? raw : "/app";
     if (!isPublic(path) && !token) {
       router.replace(`/login?next=${encodeURIComponent(path)}`);
       return;
@@ -31,7 +30,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
     setReady(true);
-  }, [path, router, params]);
+  }, [path, router]);
 
   if (!ready && !isPublic(path)) return null;
   return <>{children}</>;
