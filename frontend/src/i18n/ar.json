@@ -108,5 +108,8 @@
   "pack_label": "حزمة تنسيق",
   "pack_watermark": "للتنسيق فقط",
   "inbound_title": "البريد الوارد",
-  "inbound_stub": "الوارد تجريبي. أرسل اختباراً بعد ربط Postmark."
+  "inbound_stub": "الوارد تجريبي. أرسل اختباراً بعد ربط Postmark.",
+  "inbound_test": "أرسل لنفسك اختباراً على عنوان التحويل بعد تفعيل الويبهوك.",
+  "ocr_ticket": "افتح تذكرة OCR",
+  "ocr_ticket_ok": "فُتحت تذكرة OCR — لا نخترع نصاً."
 }
