@@ -97,5 +97,11 @@
   "theme_dark": "Dark",
   "login_title": "Sign in to PulseBuild",
   "project_code": "Code",
-  "stripe_live": "Stripe live"
+  "stripe_live": "Stripe live",
+  "pack_create": "Create GC pack",
+  "pack_ready": "Pack link ready",
+  "pack_label": "Coordination pack",
+  "pack_watermark": "For coordination only",
+  "inbound_title": "Inbound email",
+  "inbound_stub": "Inbound is a stub. Send yourself a test after Postmark inbound is wired."
 }
