@@ -30,6 +30,16 @@ type Digest = {
   ask: string | null;
 };
 
+type Exposure = {
+  open_act: number;
+  open_watch: number;
+  days_flagged: number | null;
+  aed_per_delay_day: number | null;
+  margin_at_risk: number | null;
+  shared: number;
+  note: string;
+};
+
 function token(): string {
   if (typeof window === "undefined") return "";
   return localStorage.getItem("pb_token") || "";
@@ -92,6 +102,7 @@ function RiskCard({ card, canWrite, kind, t }: { card: Card; canWrite: boolean; 
 export default function DigestAppPage() {
   const [locale, setLocale] = useState("en");
   const [digest, setDigest] = useState<Digest | null>(null);
+  const [exposure, setExposure] = useState<Exposure | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [needLogin, setNeedLogin] = useState(false);
   const [role, setRole] = useState("");
@@ -113,6 +124,8 @@ export default function DigestAppPage() {
       } else if (res.status === 401) {
         setNeedLogin(true);
       } else setError(t.errors_unavailable);
+      const exp = await fetch(`${API}/api/digest/exposure`, { cache: "no-store", headers });
+      if (exp.ok) setExposure(await exp.json());
     } catch {
       setError(t.errors_unavailable);
     }
@@ -170,6 +183,20 @@ export default function DigestAppPage() {
         )}
         {sent && <p className="muted">{sent}</p>}
       </header>
+      {exposure && (
+        <div className="exposure">
+          <div><span className="mono-label">{t.exposure_open_act}</span><b>{exposure.open_act}</b></div>
+          <div><span className="mono-label">{t.exposure_open_watch}</span><b>{exposure.open_watch}</b></div>
+          <div><span className="mono-label">{t.exposure_days}</span><b>{exposure.days_flagged ?? "—"}</b></div>
+          <div>
+            <span className="mono-label">{t.exposure_margin}</span>
+            <b>{exposure.margin_at_risk == null ? "—" : `AED ${exposure.margin_at_risk}`}</b>
+            {exposure.aed_per_delay_day == null && <a className="sq" href="/app/settings">{t.set_aed_per_day}</a>}
+          </div>
+          <div><span className="mono-label">{t.exposure_shared}</span><b>{exposure.shared}</b></div>
+        </div>
+      )}
+      {exposure && <p className="muted">{exposure.note || t.exposure_note}</p>}
       {needLogin && <div className="card"><a href="/login">{t.sign_in_link}</a></div>}
       {error && <div className="card">{error}</div>}
       {empty && (
