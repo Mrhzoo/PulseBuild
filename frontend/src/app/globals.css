@@ -5,19 +5,21 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; overflow-x: hidden; }
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   color: var(--text);
   background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
-main { padding: 88px 24px 64px; max-width: 1080px; margin: 0 auto; }
+main { padding: 88px 24px 64px; max-width: 980px; margin: 0 auto; }
 main.flush { padding: 0; max-width: none; margin: 0; }
-h1 { font-family: var(--font-display); font-size: 32px; margin: 0 0 8px; font-weight: 400; }
-.sub { color: var(--muted); margin-bottom: 16px; font-size: 15px; line-height: 1.5; }
-.muted { color: var(--muted); font-size: 13px; }
+h1 { font-family: var(--font-display); font-size: 32px; margin: 0 0 8px; font-weight: 400; letter-spacing: -0.015em; }
+.sub { color: var(--muted); margin-bottom: 16px; font-size: 13px; line-height: 1.55; }
+.muted { color: var(--muted); font-size: 12px; }
 .why { margin: 8px 0; overflow-wrap: anywhere; }
 .ev { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
 .logo-circle { display: none; }
-/* Dev overlay "1 Issue" is not a product badge. */
+a { color: inherit; }
 nextjs-portal,
 [data-nextjs-toast],
 [data-next-badge],

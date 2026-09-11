@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AppPage from "../../../components/motion/AppPage";
 import Link from "next/link";
 import en from "../../../i18n/en.json";
 import ar from "../../../i18n/ar.json";
@@ -99,7 +100,7 @@ export default function AppOnboardingPage() {
   ) : null;
 
   return (
-    <article className="ae-page">
+    <AppPage as="article">
       <h1>{t.onboarding}</h1>
       <p className="sub">{t.onboard_lede}</p>
       {done && (
@@ -116,10 +117,17 @@ export default function AppOnboardingPage() {
       {!done && (
         <>
           <p className="muted">{t.step_n.replace("{n}", String(step))}</p>
-          <div className="ae-stat-row onboard-steps">
+          <div className="onboard-steps" role="tablist" aria-label={t.onboarding}>
             {[1, 2, 3, 4].map((n) => (
-              <button key={n} type="button" className={n === step ? "ae-tile ae-sun" : "ae-tile"} onClick={() => setStep(n)}>
-                <div className="k">{n}</div>
+              <button
+                key={n}
+                type="button"
+                role="tab"
+                aria-selected={n === step}
+                className={n === step ? "ob-step on" : "ob-step"}
+                onClick={() => setStep(n)}
+              >
+                <span className="k">{n}</span>
               </button>
             ))}
           </div>
@@ -163,6 +171,6 @@ export default function AppOnboardingPage() {
           )}
         </>
       )}
-    </article>
+    </AppPage>
   );
 }

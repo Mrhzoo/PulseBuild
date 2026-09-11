@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AppPage from "../../../components/motion/AppPage";
 import en from "../../../i18n/en.json";
 import ar from "../../../i18n/ar.json";
 
@@ -100,7 +101,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <article className="ae-page">
+    <AppPage as="article">
       <h1>{t.settings}</h1>
       <div className="sheet">
         <div className="sheet-tabs">
@@ -192,6 +193,6 @@ export default function SettingsPage() {
           </section>
         )}
       </div>
-    </article>
+    </AppPage>
   );
 }

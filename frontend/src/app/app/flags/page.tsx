@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AppPage from "../../../components/motion/AppPage";
 import en from "../../../i18n/en.json";
 import ar from "../../../i18n/ar.json";
 
@@ -70,7 +71,7 @@ export default function FlagsWorkspace() {
   const revoked = rows.filter((r) => r.share_revoked);
 
   return (
-    <article className="ae-page">
+    <AppPage as="article">
       <h1>{t.flags_title}</h1>
       <p className="sub">{t.flags_sub}</p>
       {canWrite && <p><button type="button" className="ae-btn" onClick={() => void pack()}>{t.pack_create}</button></p>}
@@ -114,6 +115,6 @@ export default function FlagsWorkspace() {
           ))}
         </section>
       )}
-    </article>
+    </AppPage>
   );
 }

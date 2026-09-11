@@ -1,11 +1,21 @@
 @import url("https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap");
 
-/* S29: studio sheet is retired. Fonts only — visual system lives in aether.css + tokens.css. */
 .mono-label {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
 }
-.pigment { color: var(--text); font-style: italic; }
+.pigment {
+  color: var(--pb-pigment);
+  font-style: italic;
+}
+.sec-mark {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pb-pigment);
+  margin: 0 0 16px;
+}

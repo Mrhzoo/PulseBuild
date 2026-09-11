@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import en from "../../i18n/en.json";
 import ar from "../../i18n/ar.json";
+import { fadeUp, stagger } from "../../lib/motion";
+import { StatusPulse } from "../../components/motion/MotionSection";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -71,7 +74,14 @@ function ActRow({ card, canWrite, t, kind }: { card: Card; canWrite: boolean; t:
   }
   if (gone) return null;
   return (
-    <article className={`inbox-row ${kind}`}>
+    <motion.article
+      className={`inbox-row ${kind}`}
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.35 }}
+    >
       <span className="tick" />
       <div>
         <h3>{card.title}</h3>
@@ -85,7 +95,7 @@ function ActRow({ card, canWrite, t, kind }: { card: Card; canWrite: boolean; t:
           <button type="button" className="ae-btn ghost" onClick={() => void dismiss()}>{t.dismiss}</button>
         </div>
       )}
-    </article>
+    </motion.article>
   );
 }
 
@@ -99,6 +109,7 @@ export default function DigestAppPage() {
   const [role, setRole] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState("");
+  const reduce = useReducedMotion();
   const t = (locale === "ar" ? ar : en) as Record<string, string>;
 
   async function load() {
@@ -153,9 +164,14 @@ export default function DigestAppPage() {
   const empty = digest && digest.act.length === 0 && digest.watch.length === 0;
 
   return (
-    <div className="ae-page">
+    <motion.div
+      className="ae-page"
+      initial={reduce ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+    >
       <header>
-        <p className="mono-label">{digest?.date} · {digest?.company || digest?.tenant || ""}</p>
+        <p className="mono-label briefing-live"><StatusPulse />{digest?.date} · {digest?.company || digest?.tenant || ""}</p>
         <h1>{t.command_title}</h1>
         <p className="sub">{digest?.channel_promise || t.channel_promise}</p>
         {canWrite && (
@@ -167,17 +183,22 @@ export default function DigestAppPage() {
         {sent && <p className="muted">{sent}</p>}
       </header>
       {exposure && (
-        <div className="ae-stat-row exposure">
-          <div className="ae-tile"><div className="k">{t.exposure_open_act}</div><div className="v">{exposure.open_act}</div></div>
-          <div className="ae-tile"><div className="k">{t.exposure_open_watch}</div><div className="v">{exposure.open_watch}</div></div>
-          <div className="ae-tile ae-sun" aria-hidden />
-          <div className="ae-tile"><div className="k">{t.exposure_days}</div><div className="v">{exposure.days_flagged ?? "—"}</div></div>
-          <div className="ae-tile">
+        <motion.div
+          className="ae-stat-row exposure"
+          variants={reduce ? undefined : stagger}
+          initial={reduce ? false : "hidden"}
+          animate="show"
+        >
+          <motion.div className="ae-tile" variants={reduce ? undefined : fadeUp}><div className="k">{t.exposure_open_act}</div><div className="v">{exposure.open_act}</div></motion.div>
+          <motion.div className="ae-tile" variants={reduce ? undefined : fadeUp}><div className="k">{t.exposure_open_watch}</div><div className="v">{exposure.open_watch}</div></motion.div>
+          <motion.div className="ae-tile ae-sun" aria-hidden variants={reduce ? undefined : fadeUp} />
+          <motion.div className="ae-tile" variants={reduce ? undefined : fadeUp}><div className="k">{t.exposure_days}</div><div className="v">{exposure.days_flagged ?? "—"}</div></motion.div>
+          <motion.div className="ae-tile" variants={reduce ? undefined : fadeUp}>
             <div className="k">{t.exposure_margin}</div>
             <div className="v" style={{ fontSize: 22 }}>{exposure.margin_at_risk == null ? "—" : `AED ${exposure.margin_at_risk}`}</div>
             {exposure.aed_per_delay_day == null && <a className="ae-btn ghost" href="/app/settings">{t.set_aed_per_day}</a>}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
       {exposure && (
         <div className="mix-bar" aria-hidden>
@@ -196,7 +217,12 @@ export default function DigestAppPage() {
         </div>
       )}
       {digest && (
-        <div className="ae-command">
+        <motion.div
+          className="ae-command"
+          initial={reduce ? false : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.08 }}
+        >
           <section>
             <p className="mono-label">{t.act_inbox}</p>
             {digest.act.map((c) => <ActRow key={c.id} card={c} canWrite={canWrite} t={t} kind="act" />)}
@@ -222,9 +248,9 @@ export default function DigestAppPage() {
             ))}
             {activity.length === 0 && <p className="muted">{t.activity_empty}</p>}
           </section>
-        </div>
+        </motion.div>
       )}
       {digest?.ask && <aside className="ask-banner">{digest.ask}</aside>}
-    </div>
+    </motion.div>
   );
 }

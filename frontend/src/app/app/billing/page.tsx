@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AppPage from "../../../components/motion/AppPage";
 import en from "../../../i18n/en.json";
 import ar from "../../../i18n/ar.json";
 
@@ -57,7 +58,7 @@ export default function AppBillingPage() {
   const pct = Math.min(100, Math.round((used / Math.max(quota, 1)) * 100));
 
   return (
-    <article className="ae-page">
+    <AppPage as="article">
       <h1>{t.billing}</h1>
       <p className="sub">{t.billing_lede}</p>
       {flash && <p className="ask-banner">{flash === "canceled" ? t.billing_canceled : flash === "stub" ? t.billing_stub_entitlement : t.billing_ok}</p>}
@@ -81,17 +82,18 @@ export default function AppBillingPage() {
               </div>
             )}
           </div>
-          <div className="ae-card interactive">
+          <div className="ae-card interactive billing-pilot">
+            <p className="mono-label">{t.pilot_rec}</p>
             <h2>{t.pilot_name}</h2>
             <ul>
-              <li>{t.channel_promise}</li>
-              <li>{t.act_def}</li>
-              <li>{t.ingest_line}</li>
+              <li>{t.pilot_b1}</li>
+              <li>{t.pilot_b2}</li>
+              <li>{t.pilot_b3}</li>
               <li>{t.whatsapp_best_effort}</li>
             </ul>
           </div>
         </div>
       )}
-    </article>
+    </AppPage>
   );
 }
