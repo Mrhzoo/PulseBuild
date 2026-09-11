@@ -40,22 +40,21 @@ type Exposure = {
   note: string;
 };
 
+type ActivityItem = { kind: string; at: string | null; title: string; note: string; shared: boolean };
+
 function token(): string {
   if (typeof window === "undefined") return "";
   return localStorage.getItem("pb_token") || "";
 }
 
-function RiskCard({ card, canWrite, kind, t }: { card: Card; canWrite: boolean; kind: "act" | "watch"; t: Record<string, string> }) {
-  const [note, setNote] = useState(t.flag_this);
+function ActRow({ card, canWrite, t, kind }: { card: Card; canWrite: boolean; t: Record<string, string>; kind: "act" | "watch" }) {
   const [share, setShare] = useState<string | null>(null);
   const [gone, setGone] = useState(false);
-  const [copied, setCopied] = useState(false);
-
   async function flag() {
     const res = await fetch(`${API}/api/findings/${card.id}/flag`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token()}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ note }),
+      body: JSON.stringify({ note: t.flag_this }),
     });
     if (res.ok) {
       const data = await res.json();
@@ -72,28 +71,19 @@ function RiskCard({ card, canWrite, kind, t }: { card: Card; canWrite: boolean; 
   }
   if (gone) return null;
   return (
-    <article className={`dash-card ${kind}`}>
-      <div className="dash-meta">
-        <span className="sev-pill">{card.severity}</span>
-        <span>{card.project_name}</span>
-        <span className="conf-pill">{Math.round(card.confidence * 100)}%</span>
+    <article className={`inbox-row ${kind}`}>
+      <span className="tick" />
+      <div>
+        <h3>{card.title}</h3>
+        <p className="muted">{card.why_it_hits_us}</p>
+        <p className="ev">{card.evidence_pointer}</p>
+        {share && <p className="ev">{share}</p>}
       </div>
-      <h3>{card.title}</h3>
-      <p className="why">{card.why_it_hits_us}</p>
-      <p className="ev">{card.evidence_snippet} · {card.evidence_pointer}</p>
       {canWrite && (
         <div className="dash-actions">
-          <input value={note} onChange={(e) => setNote(e.target.value)} />
-          <button type="button" onClick={() => void flag()}>{t.flag_this}</button>
-          <button type="button" onClick={() => void dismiss()}>{t.dismiss}</button>
+          <button type="button" className="sq" onClick={() => void flag()}>{t.flag_this}</button>
+          <button type="button" className="sq" onClick={() => void dismiss()}>{t.dismiss}</button>
         </div>
-      )}
-      {share && (
-        <p className="ev">
-          <button type="button" onClick={() => { void navigator.clipboard.writeText(share); setCopied(true); }}>
-            {copied ? t.copied : t.copy_share}
-          </button>
-        </p>
       )}
     </article>
   );
@@ -103,12 +93,12 @@ export default function DigestAppPage() {
   const [locale, setLocale] = useState("en");
   const [digest, setDigest] = useState<Digest | null>(null);
   const [exposure, setExposure] = useState<Exposure | null>(null);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [needLogin, setNeedLogin] = useState(false);
   const [role, setRole] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState("");
-
   const t = (locale === "ar" ? ar : en) as Record<string, string>;
 
   async function load() {
@@ -121,11 +111,15 @@ export default function DigestAppPage() {
         setDigest(await res.json());
         setNeedLogin(false);
         setError(null);
-      } else if (res.status === 401) {
-        setNeedLogin(true);
-      } else setError(t.errors_unavailable);
+      } else if (res.status === 401) setNeedLogin(true);
+      else setError(t.errors_unavailable);
       const exp = await fetch(`${API}/api/digest/exposure`, { cache: "no-store", headers });
       if (exp.ok) setExposure(await exp.json());
+      const act = await fetch(`${API}/api/activity`, { cache: "no-store", headers });
+      if (act.ok) {
+        const data = await act.json();
+        setActivity(data.items || []);
+      }
     } catch {
       setError(t.errors_unavailable);
     }
@@ -140,7 +134,6 @@ export default function DigestAppPage() {
   async function sendBriefing() {
     setSending(true);
     setSent("");
-    setError(null);
     try {
       const res = await fetch(`${API}/api/digest/today/send`, { method: "POST", headers: { Authorization: `Bearer ${token()}` } });
       const data = await res.json().catch(() => ({}));
@@ -149,10 +142,8 @@ export default function DigestAppPage() {
         return;
       }
       const via = String(data.delivered_via || "");
-      const parts = [via === "stub" ? t.send_stub : t.send_ok];
-      if (data.whatsapp === "whatsapp") parts.push(t.wa_sent);
-      else if (data.whatsapp === "failed") parts.push(t.wa_not_sent);
-      setSent(parts.join(" · "));
+      setSent(via === "stub" ? t.send_stub : t.send_ok);
+      void load();
     } finally {
       setSending(false);
     }
@@ -164,21 +155,13 @@ export default function DigestAppPage() {
   return (
     <div className="dash">
       <header className="dash-head">
-        <p className="muted">{digest?.date} · {digest?.company || digest?.tenant || ""}</p>
-        <h1>{t.digest_title}</h1>
+        <p className="mono-label">{digest?.date} · {digest?.company || digest?.tenant || ""}</p>
+        <h1>{t.command_title}</h1>
         <p className="sub">{digest?.channel_promise || t.channel_promise}</p>
-        {digest && (
-          <p className="muted">
-            {t.last_data}: {digest.last_data_received || "—"}
-            {" · "}
-            {t.unassigned}: {digest.unassigned_count}
-          </p>
-        )}
         {canWrite && (
           <div className="dash-toolbar">
-            <button type="button" onClick={() => void sendBriefing()} disabled={sending}>{sending ? t.sending : t.send_briefing}</button>
-            <button type="button" onClick={() => void load()}>{t.refresh}</button>
-            <a href="/app/flags">{t.open_flags}</a>
+            <button type="button" className="sq fill" onClick={() => void sendBriefing()} disabled={sending}>{sending ? t.sending : t.send_briefing}</button>
+            <button type="button" className="sq" onClick={() => void load()}>{t.refresh}</button>
           </div>
         )}
         {sent && <p className="muted">{sent}</p>}
@@ -196,21 +179,38 @@ export default function DigestAppPage() {
           <div><span className="mono-label">{t.exposure_shared}</span><b>{exposure.shared}</b></div>
         </div>
       )}
-      {exposure && <p className="muted">{exposure.note || t.exposure_note}</p>}
+      {exposure && <p className="muted">{t.exposure_note}</p>}
       {needLogin && <div className="card"><a href="/login">{t.sign_in_link}</a></div>}
       {error && <div className="card">{error}</div>}
-      {empty && (
-        <div className="card">
-          {t.quiet_morning}{" "}
-          <a href="/app/projects">{t.upload}</a>
+      {empty && <div className="card">{t.quiet_morning} <a href="/app/projects">{t.upload}</a></div>}
+      {digest && (
+        <div className="command">
+          <section>
+            <p className="mono-label">{t.act_inbox}</p>
+            {digest.act.map((c) => <ActRow key={c.id} card={c} canWrite={canWrite} t={t} kind="act" />)}
+            {digest.act.length === 0 && <p className="muted">{t.quiet_morning}</p>}
+          </section>
+          <section>
+            <p className="mono-label">{t.watch_rail}</p>
+            {digest.watch.map((c) => (
+              <div key={c.id} className="rail-item">
+                <strong>{c.title}</strong>
+                <p className="ev">{c.evidence_pointer}</p>
+              </div>
+            ))}
+          </section>
+          <section>
+            <p className="mono-label">{t.activity_panel}</p>
+            {activity.map((item, i) => (
+              <div key={`${item.kind}-${i}`} className="act-feed">
+                <span className="mono-label">{item.kind}</span>
+                <p>{item.title}</p>
+                <p className="muted">{item.note}</p>
+              </div>
+            ))}
+            {activity.length === 0 && <p className="muted">{t.activity_empty}</p>}
+          </section>
         </div>
-      )}
-      {digest && digest.act.length > 0 && <h2 className="dash-sec">{t.section_act}</h2>}
-      {digest?.act.map((c) => <RiskCard key={c.id} card={c} canWrite={canWrite} kind="act" t={t} />)}
-      {digest && digest.watch.length > 0 && <h2 className="dash-sec">{t.section_watch}</h2>}
-      {digest?.watch.map((c) => <RiskCard key={c.id} card={c} canWrite={canWrite} kind="watch" t={t} />)}
-      {digest && digest.quiet_projects.length > 0 && (
-        <p className="chips">{digest.quiet_projects.map((n) => <span key={n} className="chip">{n}</span>)}</p>
       )}
       {digest?.ask && <aside className="ask-banner">{digest.ask}</aside>}
     </div>
