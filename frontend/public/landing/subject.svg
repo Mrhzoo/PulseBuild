@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="720" viewBox="0 0 420 720" aria-label="placeholder cut-out">
+  <g fill="#1A1917">
+    <rect x="188" y="40" width="18" height="520"/>
+    <rect x="80" y="70" width="250" height="14"/>
+    <polygon points="330,70 330,120 380,90"/>
+    <circle cx="210" cy="560" r="42"/>
+    <rect x="186" y="600" width="48" height="90"/>
+  </g>
+  <text x="20" y="710" fill="#9B3418" font-family="monospace" font-size="11">PLACEHOLDER</text>
+</svg>

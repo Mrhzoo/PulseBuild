@@ -1,26 +1,39 @@
-:root, [data-theme="dark"] {
-  --bg: #07080a;
-  --text: #f4f6f8;
-  --muted: rgba(244, 246, 248, 0.72);
-  --pill: rgba(10, 12, 16, 0.45);
-  --border: rgba(255, 255, 255, 0.16);
-  --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-  --font-sans: Inter, system-ui, sans-serif;
-  --font-display: "GeistPixel-Circle", "BubbledotICG-FinePos", Inter, sans-serif;
-  --btn-bg: #ffffff;
-  --btn-text: #111111;
-  --card-bg: rgba(255, 255, 255, 0.04);
-  --header-bg: #0b1f33;
+:root, [data-theme="studio"], [data-theme="light"] {
+  --pb-ground: #E7E3DA;
+  --pb-ground-2: #DCD7CB;
+  --pb-ink: #1A1917;
+  --pb-ink-2: #4A4741;
+  --pb-muted: #6E6A61;
+  --pb-pigment: #9B3418;
+  --pb-hairline: rgba(26,25,23,.16);
+  --pb-radius: 0;
+  --bg: var(--pb-ground);
+  --text: var(--pb-ink);
+  --muted: var(--pb-muted);
+  --border: var(--pb-hairline);
+  --card-bg: var(--pb-ground);
+  --header-bg: rgba(231,227,218,.88);
+  --btn-bg: var(--pb-ink);
+  --btn-text: var(--pb-ground);
+  --shadow: none;
+  --font-display: "Instrument Serif", "Times New Roman", serif;
+  --font-mono: "Azeret Mono", ui-monospace, monospace;
+  --font-sans: var(--font-mono);
 }
-[data-theme="light"] {
-  --bg: #f7f3eb;
-  --text: #1a2330;
-  --muted: #5c6b7a;
-  --pill: rgba(255, 255, 255, 0.72);
-  --border: #d7d1c5;
-  --shadow: 0 8px 24px rgba(11, 31, 51, 0.08);
-  --btn-bg: #0b1f33;
-  --btn-text: #ffffff;
-  --card-bg: #ffffff;
-  --header-bg: #0b1f33;
+[data-theme="dark"] {
+  --pb-ground: #161513;
+  --pb-ground-2: #1E1C19;
+  --pb-ink: #E7E3DA;
+  --pb-ink-2: #C4BFB4;
+  --pb-muted: #8A857B;
+  --pb-pigment: #C45A38;
+  --pb-hairline: rgba(231,227,218,.16);
+  --bg: var(--pb-ground);
+  --text: var(--pb-ink);
+  --muted: var(--pb-muted);
+  --border: var(--pb-hairline);
+  --card-bg: var(--pb-ground-2);
+  --header-bg: rgba(22,21,19,.92);
+  --btn-bg: var(--pb-ink);
+  --btn-text: #161513;
 }
