@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AppPage from "../../../components/motion/AppPage";
 import en from "../../../i18n/en.json";
 import ar from "../../../i18n/ar.json";
 
@@ -31,6 +32,8 @@ export default function SettingsPage() {
   const [inbound, setInbound] = useState<Record<string, any> | null>(null);
   const [pilot, setPilot] = useState<Record<string, any> | null>(null);
   const [aed, setAed] = useState("");
+  const [tz, setTz] = useState("Asia/Dubai");
+  const [localTime, setLocalTime] = useState("07:00");
 
   useEffect(() => {
     setLocale(localStorage.getItem("pb_locale") === "ar" ? "ar" : "en");
@@ -42,6 +45,8 @@ export default function SettingsPage() {
     void fetch(`${API}/api/pilot/checklist`, { headers }).then((r) => (r.ok ? r.json() : null)).then(setPilot);
     void fetch(`${API}/api/settings/tenant`, { headers }).then((r) => (r.ok ? r.json() : null)).then((d) => {
       if (d?.aed_per_delay_day != null) setAed(String(d.aed_per_delay_day));
+      if (d?.digest_timezone) setTz(d.digest_timezone);
+      if (d?.digest_local_time) setLocalTime(d.digest_local_time);
     });
   }, []);
 
@@ -81,6 +86,13 @@ export default function SettingsPage() {
       body: JSON.stringify({ aed_per_delay_day: aed === "" ? null : Number(aed) }),
     });
   }
+  async function saveSchedule() {
+    await fetch(`${API}/api/settings/tenant`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${localStorage.getItem("pb_token") || ""}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ digest_timezone: tz, digest_local_time: localTime }),
+    });
+  }
 
   function mark(ok: boolean | null) {
     if (ok === true) return "✓";
@@ -89,7 +101,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <article className="ae-page">
+    <AppPage as="article">
       <h1>{t.settings}</h1>
       <div className="sheet">
         <div className="sheet-tabs">
@@ -113,6 +125,19 @@ export default function SettingsPage() {
               <p className="muted">{t.exposure_note}</p>
               <input value={aed} onChange={(e) => setAed(e.target.value)} inputMode="decimal" disabled={!canWrite} />
               {canWrite && <button type="button" className="ae-btn" onClick={() => void saveAed()}>{t.set_aed_per_day}</button>}
+            </section>
+            <section className="ae-card ae-field interactive">
+              <h2>{t.digest_schedule}</h2>
+              <p className="muted">{t.digest_schedule_note}</p>
+              <label htmlFor="digest-tz">{t.digest_timezone}</label>
+              <select id="digest-tz" value={tz} disabled={!canWrite} onChange={(e) => setTz(e.target.value)}>
+                {["Asia/Dubai", "Asia/Riyadh", "Asia/Kuwait", "Asia/Qatar", "UTC", tz].filter((v, i, a) => a.indexOf(v) === i).map((z) => (
+                  <option key={z} value={z}>{z}</option>
+                ))}
+              </select>
+              <label htmlFor="digest-time">{t.digest_local_time}</label>
+              <input id="digest-time" type="time" value={localTime} disabled={!canWrite} onChange={(e) => setLocalTime(e.target.value)} />
+              {canWrite && <button type="button" className="ae-btn" onClick={() => void saveSchedule()}>{t.save_schedule}</button>}
             </section>
             <section className="ae-card interactive" style={{ gridColumn: "1 / -1" }}>
               <h2>{t.pilot_checklist}</h2>
@@ -168,6 +193,6 @@ export default function SettingsPage() {
           </section>
         )}
       </div>
-    </article>
+    </AppPage>
   );
 }

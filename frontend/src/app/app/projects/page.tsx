@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import AppPage from "../../../components/motion/AppPage";
 import en from "../../../i18n/en.json";
 import ar from "../../../i18n/ar.json";
 
@@ -122,7 +123,7 @@ export default function ProjectsPage() {
   const unassigned = docs.filter((d) => d.unassigned);
 
   return (
-    <article className="ae-page">
+    <AppPage as="article">
       <h1>{t.projects}</h1>
       <p className="sub">{t.forward_tip}</p>
       {quota && <p className="ask-banner">{quota} <a className="ae-btn" href="/app/billing">{t.billing}</a></p>}
@@ -175,6 +176,6 @@ export default function ProjectsPage() {
         </section>
       ))}
       </div>
-    </article>
+    </AppPage>
   );
 }

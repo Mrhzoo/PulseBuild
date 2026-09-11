@@ -1,9 +1,7 @@
-export default function SkyMotion() {
-  return (
-    <div className="sky-motion" aria-hidden>
-      <span className="orb o1" />
-      <span className="orb o2" />
-      <span className="orb o3" />
-    </div>
-  );
-}
+"use client";
+
+/**
+ * Legacy export — homepage hero now uses the LED mosaic background.
+ * Kept so any stray imports keep working.
+ */
+export { default } from "./HeroLedGrid";

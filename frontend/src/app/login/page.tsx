@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import en from "../../i18n/en.json";
 import ar from "../../i18n/ar.json";
-import SkyMotion from "../../components/SkyMotion";
+import { easeOut } from "../../lib/motion";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 function isLocalHost(): boolean {
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [email, setEmail] = useState(DEV ? "owner@demo.pulsebuild.local" : "");
   const [password, setPassword] = useState(DEV ? "demo-owner-pass" : "");
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     const read = () => setLocale(localStorage.getItem("pb_locale") || "en");
@@ -47,19 +49,46 @@ export default function LoginPage() {
 
   return (
     <div className="login-stage">
-      <SkyMotion />
-      <form className="login-card" onSubmit={(e) => void onSubmit(e)}>
-        <p className="login-kicker"><a href="/">PulseBuild.</a></p>
+      <motion.form
+        className="login-card ae-field"
+        onSubmit={(e) => void onSubmit(e)}
+        initial={reduce ? false : { opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={easeOut}
+      >
+        <p className="login-kicker">
+          <a href="/">
+            PulseBuild<span className="pigment">.</span>
+          </a>
+        </p>
         <h1 className="login-title">{t.login_title}</h1>
-        <p className="sub">{t.whatsapp_best_effort}</p>
-        <label>{t.email}</label>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="username" />
-        <label>{t.password}</label>
-        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required autoComplete="current-password" />
-        <button className="ae-btn" type="submit">{t.login}</button>
+        <p className="sub">{t.hero_sub}</p>
+        <label htmlFor="login-email">{t.email}</label>
+        <input
+          id="login-email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          type="email"
+          required
+          autoComplete="username"
+        />
+        <label htmlFor="login-pass">{t.password}</label>
+        <input
+          id="login-pass"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          type="password"
+          required
+          autoComplete="current-password"
+        />
+        <button className="ae-btn" type="submit" style={{ width: "100%" }}>
+          {t.login}
+        </button>
         {error && <p className="ev">{error}</p>}
-        <p className="muted"><a href="/contact">{t.request_pilot}</a> · <a href="/">{t.nav_home}</a></p>
-      </form>
+        <p className="muted" style={{ marginTop: 16 }}>
+          <a href="/contact">{t.request_pilot}</a> · <a href="/pricing">{t.nav_pricing}</a> · <a href="/">{t.nav_home}</a>
+        </p>
+      </motion.form>
     </div>
   );
 }

@@ -1,24 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { motion, useReducedMotion } from "motion/react";
 import en from "../../../i18n/en.json";
 import ar from "../../../i18n/ar.json";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
-export default function SharePage({ params }: { params: { token: string } }) {
+export default function SharePage() {
+  const params = useParams<{ token: string }>();
+  const token = params?.token || "";
   const [locale, setLocale] = useState("en");
   const t = (locale === "ar" ? ar : en) as Record<string, string>;
   const [data, setData] = useState<Record<string, any> | null>(null);
   const [missing, setMissing] = useState(false);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     setLocale(localStorage.getItem("pb_locale") || "en");
-    void fetch(`${API}/api/share/${params.token}`, { cache: "no-store" })
+    if (!token) return;
+    void fetch(`${API}/api/share/${token}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then(setData)
       .catch(() => setMissing(true));
-  }, [params.token]);
+  }, [token]);
 
   if (missing) {
     return (
@@ -36,7 +42,12 @@ export default function SharePage({ params }: { params: { token: string } }) {
   if (data.pack) {
     const cards = data.cards || [];
     return (
-      <article className="ae-mkt">
+      <motion.article
+        className="ae-mkt"
+        initial={reduce ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+      >
         <div className="ae-mkt-hero">
           <p className="muted">{data.company}</p>
           <h1>{t.pack_label}</h1>
@@ -57,12 +68,17 @@ export default function SharePage({ params }: { params: { token: string } }) {
           ))}
           <p className="muted">{t.share_proof}</p>
         </div>
-      </article>
+      </motion.article>
     );
   }
 
   return (
-    <article className="ae-mkt">
+    <motion.article
+      className="ae-mkt"
+      initial={reduce ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+    >
       <div className="ae-mkt-hero">
         <p className="muted">{data.company}</p>
         <h1>{data.title}</h1>
@@ -80,6 +96,6 @@ export default function SharePage({ params }: { params: { token: string } }) {
         </div>
         <p className="muted">{t.share_proof}</p>
       </div>
-    </article>
+    </motion.article>
   );
 }
