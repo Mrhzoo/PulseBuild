@@ -1,7 +1,7 @@
 "use client";
 
-import LandingStudio from "../components/landing/LandingStudio";
+import LandingAether from "../components/landing/LandingAether";
 
 export default function MarketingRoot() {
-  return <LandingStudio />;
+  return <LandingAether />;
 }
