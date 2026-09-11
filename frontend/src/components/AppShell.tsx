@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ThemeLocale from "./ThemeLocale";
 import en from "../i18n/en.json";
 import ar from "../i18n/ar.json";
 
@@ -39,25 +41,24 @@ export default function AppShell({
 
   return (
     <header className="ae-nav ae-shell">
-      <a className="wordmark" href="/">PulseBuild.</a>
+      <Link className="wordmark" href="/">PulseBuild.</Link>
       <nav>
         {links.map((l) => (
-          <a key={l.href} href={l.href} className={path === l.href ? "active" : ""}>
+          <Link key={l.href} href={l.href} className={path === l.href ? "active" : ""}>
             {t[l.key] || l.key}
-          </a>
+          </Link>
         ))}
       </nav>
       <div className="tools">
         <span className="chip">{role}</span>
-        <button type="button" className="ae-btn ghost" onClick={onTheme}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>
-        <button type="button" className="ae-btn ghost" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>
+        <ThemeLocale theme={theme} locale={locale} onTheme={onTheme} onLocale={onLocale} t={t} />
         <button type="button" className="ae-btn ghost" onClick={signOut}>{t.logout}</button>
-        <button type="button" className="ae-btn ghost burger-app" onClick={() => setOpen((v) => !v)} aria-label={t.menu}>{t.menu}</button>
+        <button type="button" className="ae-icon burger-app" onClick={() => setOpen((v) => !v)} aria-label={t.menu}>{t.menu}</button>
       </div>
       {open && (
         <div className="shell-drawer">
           {links.map((l) => (
-            <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{t[l.key] || l.key}</a>
+            <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>{t[l.key] || l.key}</Link>
           ))}
           <button type="button" className="ae-btn ghost" onClick={signOut}>{t.logout}</button>
         </div>

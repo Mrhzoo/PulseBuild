@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import ThemeLocale from "./ThemeLocale";
 import en from "../i18n/en.json";
 import ar from "../i18n/ar.json";
 
@@ -17,17 +19,16 @@ export default function StudioNav({
   const t = ((locale === "ar" ? ar : en) as Record<string, string>);
   return (
     <header className="ae-nav">
-      <a className="wordmark" href="/">PulseBuild.</a>
+      <Link className="wordmark" href="/">PulseBuild.</Link>
       <nav>
-        <a href="/product">{t.nav_product}</a>
-        <a href="/pricing">{t.nav_pricing}</a>
-        <a href="/case-studies">{t.nav_cases}</a>
-        <a href="/contact">{t.nav_contact}</a>
+        <Link href="/product">{t.nav_product}</Link>
+        <Link href="/pricing">{t.nav_pricing}</Link>
+        <Link href="/case-studies">{t.nav_cases}</Link>
+        <Link href="/contact">{t.nav_contact}</Link>
       </nav>
       <div className="tools">
-        {onTheme && <button type="button" className="ae-btn ghost" onClick={onTheme}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>}
-        {onLocale && <button type="button" className="ae-btn ghost" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>}
-        <a className="ae-btn" href="/login">{t.login}</a>
+        {onTheme && onLocale && <ThemeLocale theme={theme || "light"} locale={locale || "en"} onTheme={onTheme} onLocale={onLocale} t={t} />}
+        <Link className="ae-btn" href="/login">{t.login}</Link>
       </div>
     </header>
   );

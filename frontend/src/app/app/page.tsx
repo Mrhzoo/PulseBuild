@@ -179,6 +179,13 @@ export default function DigestAppPage() {
           </div>
         </div>
       )}
+      {exposure && (
+        <div className="mix-bar" aria-hidden>
+          <span className="act" style={{ flex: Math.max(exposure.open_act, 0.2) }} />
+          <span className="watch" style={{ flex: Math.max(exposure.open_watch, 0.2) }} />
+          <span className="share" style={{ flex: Math.max(exposure.shared, 0.2) }} />
+        </div>
+      )}
       {exposure && <p className="muted">{t.exposure_note} · {t.exposure_shared}: {exposure.shared}</p>}
       {needLogin && <div className="ae-empty"><a className="ae-btn" href="/login">{t.sign_in_link}</a></div>}
       {error && <div className="ae-card">{error}</div>}

@@ -133,7 +133,8 @@ export default function ProjectsPage() {
       )}
 
       {canWrite && (
-        <form className="ae-card ae-field" onSubmit={(e) => void createProject(e)}>
+        <div className="grid-2">
+        <form className="ae-card ae-field interactive" onSubmit={(e) => void createProject(e)}>
           <h2>{t.create_project}</h2>
           <label htmlFor="proj-name">{t.company_name}</label>
           <input id="proj-name" name="name" required />
@@ -141,12 +142,10 @@ export default function ProjectsPage() {
           <input id="proj-code" name="code" required />
           <button className="ae-btn" type="submit">{t.create_project}</button>
         </form>
-      )}
-
-      {canWrite && (
-        <div className="ae-card">
+        <div className="ae-card interactive">
           <h2>{t.upload_unassigned}</h2>
           <input type="file" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(null, f); }} />
+        </div>
         </div>
       )}
 
@@ -159,8 +158,9 @@ export default function ProjectsPage() {
         </section>
       )}
 
+      <div className="grid-2">
       {projects.map((p) => (
-        <section key={p.id} className="ae-card">
+        <section key={p.id} className="ae-card interactive">
           <h2>{p.name} <span className="muted">{p.code}</span></h2>
           <p className="ev">{p.forward_address}</p>
           {docs.filter((d) => d.project_id === p.id).map((d) => (
@@ -174,6 +174,7 @@ export default function ProjectsPage() {
           )}
         </section>
       ))}
+      </div>
     </article>
   );
 }

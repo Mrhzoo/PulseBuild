@@ -11,7 +11,7 @@
   --pb-sky-bot: #f4f1ea;
   --pb-hairline: rgba(17,17,17,.12);
   --pb-radius: 14px;
-  --pb-btn-radius: 4px;
+  --pb-btn-radius: 999px;
   --bg: var(--pb-ground-2);
   --text: var(--pb-ink);
   --muted: var(--pb-muted);

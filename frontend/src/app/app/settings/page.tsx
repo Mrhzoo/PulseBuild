@@ -20,6 +20,7 @@ const META = [
 export default function SettingsPage() {
   const [locale, setLocale] = useState("en");
   const [theme, setTheme] = useState("light");
+  const [tab, setTab] = useState<"prefs" | "people" | "inbound" | "meta">("prefs");
   const t = (locale === "ar" ? ar : en) as Record<string, string>;
   const role = typeof window !== "undefined" ? localStorage.getItem("pb_role") || "" : "";
   const canWrite = role === "owner" || role === "ops";
@@ -90,64 +91,83 @@ export default function SettingsPage() {
   return (
     <article className="ae-page">
       <h1>{t.settings}</h1>
-      <section className="ae-card">
-        <h2>{t.prefs}</h2>
-        <div className="dash-actions">
-          <button type="button" className="ae-btn ghost" onClick={() => persistTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>
-          <button type="button" className="ae-btn ghost" onClick={() => persistLocale(locale === "en" ? "ar" : "en")}>{locale === "ar" ? "EN" : "ع"}</button>
+      <div className="sheet">
+        <div className="sheet-tabs">
+          {(["prefs", "people", "inbound", "meta"] as const).map((id) => (
+            <button key={id} type="button" className={`ae-btn ${tab === id ? "" : "ghost"}`} onClick={() => setTab(id)}>
+              {id === "prefs" ? t.prefs : id === "people" ? t.people : id === "inbound" ? t.inbound_title : t.meta_title}
+            </button>
+          ))}
         </div>
-      </section>
-      <section className="ae-card ae-field">
-        <h2>{t.aed_per_day}</h2>
-        <p className="muted">{t.exposure_note}</p>
-        <input value={aed} onChange={(e) => setAed(e.target.value)} inputMode="decimal" disabled={!canWrite} />
-        {canWrite && <button type="button" className="ae-btn" onClick={() => void saveAed()}>{t.set_aed_per_day}</button>}
-      </section>
-      <section className="ae-card">
-        <h2>{t.pilot_checklist}</h2>
-        <p className="muted">{t.pilot_checklist_sub}</p>
-        {(pilot?.items || []).map((item: { id: string; label: string; ok: boolean | null }) => (
-          <p key={item.id} className="ev">{mark(item.ok)} {item.label}</p>
-        ))}
-      </section>
-      <section className="ae-card">
-        <h2>{t.inbound_title}</h2>
-        <p className="muted">{inbound?.note || t.inbound_stub}</p>
-        <p className="sub">{t.inbound_test}</p>
-        {(inbound?.checklist || []).map((item: { id: string; label: string; ok: boolean }) => (
-          <p key={item.id} className="ev">{item.ok ? "✓" : "—"} {item.label}</p>
-        ))}
-        {(inbound?.forwards || []).map((f: { project: string; forward_address: string }) => (
-          <p key={f.forward_address} className="ev">{f.project}: {f.forward_address}</p>
-        ))}
-        {inbound?.last_inbound && <p className="muted">{inbound.last_inbound.filename} · {inbound.last_inbound.parse_status}</p>}
-      </section>
-      <section className="ae-card ae-field">
-        <h2>{t.people}</h2>
-        {people.map((p) => (
-          <p key={p.user_id}>{p.email} · {p.role} · {p.whatsapp_e164 || "—"}</p>
-        ))}
-        {canWrite && (
-          <>
-            <label htmlFor="invite-email">{t.email}</label>
-            <input id="invite-email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <button type="button" className="ae-btn" onClick={() => void invite()}>{t.invite_reader}</button>
-            {temp && <p className="ask-banner">{t.temp_password}: {temp}</p>}
-          </>
+        {tab === "prefs" && (
+          <div className="grid-2">
+            <section className="ae-card interactive">
+              <h2>{t.prefs}</h2>
+              <div className="dash-actions">
+                <button type="button" className="ae-btn ghost" onClick={() => persistTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>
+                <button type="button" className="ae-btn ghost" onClick={() => persistLocale(locale === "en" ? "ar" : "en")}>{locale === "ar" ? "EN" : "ع"}</button>
+              </div>
+            </section>
+            <section className="ae-card ae-field interactive">
+              <h2>{t.aed_per_day}</h2>
+              <p className="muted">{t.exposure_note}</p>
+              <input value={aed} onChange={(e) => setAed(e.target.value)} inputMode="decimal" disabled={!canWrite} />
+              {canWrite && <button type="button" className="ae-btn" onClick={() => void saveAed()}>{t.set_aed_per_day}</button>}
+            </section>
+            <section className="ae-card interactive" style={{ gridColumn: "1 / -1" }}>
+              <h2>{t.pilot_checklist}</h2>
+              <p className="muted">{t.pilot_checklist_sub}</p>
+              {(pilot?.items || []).map((item: { id: string; label: string; ok: boolean | null }) => (
+                <p key={item.id} className="ev">{mark(item.ok)} {item.label}</p>
+              ))}
+            </section>
+          </div>
         )}
-        <p className="sub">{t.whatsapp_best_effort}</p>
-        <label htmlFor="wa">{t.save_whatsapp}</label>
-        <input id="wa" value={wa} onChange={(e) => setWa(e.target.value)} />
-        <button type="button" className="ae-btn ghost" onClick={() => void saveWa()}>{t.save_whatsapp}</button>
-      </section>
-      <details className="ae-card" open>
-        <summary>{t.meta_title}</summary>
-        <p className="muted">{t.meta_manual}</p>
-        <ul>
-          {META.map((k) => <li key={k}>{t[k]} — {t.meta_unchecked}</li>)}
-        </ul>
-        <p className="sub">{t.whatsapp_best_effort}</p>
-      </details>
+        {tab === "people" && (
+          <section className="ae-card ae-field interactive">
+            <h2>{t.people}</h2>
+            {people.map((p) => (
+              <p key={p.user_id}>{p.email} · {p.role} · {p.whatsapp_e164 || "—"}</p>
+            ))}
+            {canWrite && (
+              <>
+                <label htmlFor="invite-email">{t.email}</label>
+                <input id="invite-email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <button type="button" className="ae-btn" onClick={() => void invite()}>{t.invite_reader}</button>
+                {temp && <p className="ask-banner">{t.temp_password}: {temp}</p>}
+              </>
+            )}
+            <p className="sub">{t.whatsapp_best_effort}</p>
+            <label htmlFor="wa">{t.save_whatsapp}</label>
+            <input id="wa" value={wa} onChange={(e) => setWa(e.target.value)} />
+            <button type="button" className="ae-btn ghost" onClick={() => void saveWa()}>{t.save_whatsapp}</button>
+          </section>
+        )}
+        {tab === "inbound" && (
+          <section className="ae-card interactive">
+            <h2>{t.inbound_title}</h2>
+            <p className="muted">{inbound?.note || t.inbound_stub}</p>
+            <p className="sub">{t.inbound_test}</p>
+            {(inbound?.checklist || []).map((item: { id: string; label: string; ok: boolean }) => (
+              <p key={item.id} className="ev">{item.ok ? "✓" : "—"} {item.label}</p>
+            ))}
+            {(inbound?.forwards || []).map((f: { project: string; forward_address: string }) => (
+              <p key={f.forward_address} className="ev">{f.project}: {f.forward_address}</p>
+            ))}
+            {inbound?.last_inbound && <p className="muted">{inbound.last_inbound.filename} · {inbound.last_inbound.parse_status}</p>}
+          </section>
+        )}
+        {tab === "meta" && (
+          <section className="ae-card interactive">
+            <h2>{t.meta_title}</h2>
+            <p className="muted">{t.meta_manual}</p>
+            <ul>
+              {META.map((k) => <li key={k}>{t[k]} — {t.meta_unchecked}</li>)}
+            </ul>
+            <p className="sub">{t.whatsapp_best_effort}</p>
+          </section>
+        )}
+      </div>
     </article>
   );
 }

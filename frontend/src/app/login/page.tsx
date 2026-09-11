@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import en from "../../i18n/en.json";
 import ar from "../../i18n/ar.json";
+import SkyMotion from "../../components/SkyMotion";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 function isLocalHost(): boolean {
@@ -46,6 +47,7 @@ export default function LoginPage() {
 
   return (
     <div className="login-stage">
+      <SkyMotion />
       <form className="login-card" onSubmit={(e) => void onSubmit(e)}>
         <p className="login-kicker"><a href="/">PulseBuild.</a></p>
         <h1 className="login-title">{t.login_title}</h1>
