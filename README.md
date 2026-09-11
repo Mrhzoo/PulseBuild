@@ -2,9 +2,9 @@
 
 Morning project-risk briefings for UAE construction SMEs. Email is the SLA. WhatsApp is best-effort. Act cards require an evidence pointer.
 
-**S0–S26 closed** on `main`. Next: founder / bot test ride.
+**S0–S27 closed** on `main`. Invite gate deferred to S28+.
 
-Theme: `pb_theme`. Locale: `pb_locale`.
+Theme default: bone studio. Locale: `pb_locale`.
 
 ## Local demo
 
@@ -25,4 +25,4 @@ Seed is refused when `APP_ENV=production`.
 
 Morning cron: `cd backend && python -m scripts.send_morning_digests`
 
-Ship: [docs/DEPLOY.md](docs/DEPLOY.md)
+Ship: [docs/DEPLOY.md](docs/DEPLOY.md) · Studio: [docs/S27-studio.md](docs/S27-studio.md)
