@@ -19,24 +19,28 @@ const META = [
 
 export default function SettingsPage() {
   const [locale, setLocale] = useState("en");
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState("studio");
   const t = (locale === "ar" ? ar : en) as Record<string, string>;
   const role = typeof window !== "undefined" ? localStorage.getItem("pb_role") || "" : "";
-  const canInvite = role === "owner" || role === "ops";
+  const canWrite = role === "owner" || role === "ops";
   const [people, setPeople] = useState<Person[]>([]);
   const [email, setEmail] = useState("");
   const [temp, setTemp] = useState("");
   const [wa, setWa] = useState("");
   const [inbound, setInbound] = useState<Record<string, any> | null>(null);
   const [pilot, setPilot] = useState<Record<string, any> | null>(null);
+  const [aed, setAed] = useState("");
 
   useEffect(() => {
     setLocale(localStorage.getItem("pb_locale") || "en");
-    setTheme(localStorage.getItem("pb_theme") || "dark");
+    setTheme(localStorage.getItem("pb_theme") || "studio");
     const headers = { Authorization: `Bearer ${localStorage.getItem("pb_token") || ""}` };
     void fetch(`${API}/api/people`, { headers }).then((r) => (r.ok ? r.json() : [])).then(setPeople);
     void fetch(`${API}/api/inbound/status`, { headers }).then((r) => (r.ok ? r.json() : null)).then(setInbound);
     void fetch(`${API}/api/pilot/checklist`, { headers }).then((r) => (r.ok ? r.json() : null)).then(setPilot);
+    void fetch(`${API}/api/settings/tenant`, { headers }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+      if (d?.aed_per_delay_day != null) setAed(String(d.aed_per_delay_day));
+    });
   }, []);
 
   function persistTheme(next: string) {
@@ -67,6 +71,13 @@ export default function SettingsPage() {
       body: JSON.stringify({ whatsapp_e164: wa }),
     });
   }
+  async function saveAed() {
+    await fetch(`${API}/api/settings/tenant`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${localStorage.getItem("pb_token") || ""}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ aed_per_delay_day: aed === "" ? null : Number(aed) }),
+    });
+  }
 
   function mark(ok: boolean | null) {
     if (ok === true) return "✓";
@@ -79,8 +90,14 @@ export default function SettingsPage() {
       <h1>{t.settings}</h1>
       <section className="card">
         <h2>{t.prefs}</h2>
-        <button type="button" onClick={() => persistTheme(theme === "dark" ? "light" : "dark")}>{theme}</button>{" "}
+        <button type="button" onClick={() => persistTheme(theme === "dark" ? "studio" : "dark")}>{theme}</button>{" "}
         <button type="button" onClick={() => persistLocale(locale === "en" ? "ar" : "en")}>{locale}</button>
+      </section>
+      <section className="card">
+        <h2>{t.aed_per_day}</h2>
+        <p className="muted">{t.exposure_note}</p>
+        <input value={aed} onChange={(e) => setAed(e.target.value)} inputMode="decimal" disabled={!canWrite} />
+        {canWrite && <button type="button" className="sq" onClick={() => void saveAed()}>{t.set_aed_per_day}</button>}
       </section>
       <section className="card">
         <h2>{t.pilot_checklist}</h2>
@@ -106,7 +123,7 @@ export default function SettingsPage() {
         {people.map((p) => (
           <p key={p.user_id}>{p.email} · {p.role} · {p.whatsapp_e164 || "—"}</p>
         ))}
-        {canInvite && (
+        {canWrite && (
           <>
             <label htmlFor="invite-email">{t.email}</label>
             <input id="invite-email" value={email} onChange={(e) => setEmail(e.target.value)} />
