@@ -7,8 +7,8 @@ import AppShell from "../components/AppShell";
 import AuthGuard from "../components/AuthGuard";
 import StudioNav from "../components/StudioNav";
 
-function applyDom(theme: string, locale: string, marketing: boolean) {
-  document.documentElement.dataset.theme = marketing ? "studio" : theme;
+function applyDom(theme: string, locale: string) {
+  document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
   document.documentElement.lang = locale;
   document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
 }
@@ -23,38 +23,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const mktPage = MKT.includes(pathname);
   const appChrome = !landing && !login && !share && !mktPage;
   const [locale, setLocale] = useState("en");
-  const [theme, setTheme] = useState("studio");
+  const [theme, setTheme] = useState("light");
 
   useEffect(() => {
     const loc = localStorage.getItem("pb_locale") || "en";
-    const stored = localStorage.getItem("pb_theme") || "studio";
-    const th = stored === "dark" ? "dark" : "studio";
+    const stored = localStorage.getItem("pb_theme") || "light";
+    const th = stored === "dark" ? "dark" : "light";
     setLocale(loc);
     setTheme(th);
-    applyDom(th, loc, mktPage || login || share);
-  }, [mktPage, login, share]);
+    applyDom(th, loc);
+  }, [pathname]);
 
   function onTheme() {
-    const next = theme === "dark" ? "studio" : "dark";
+    const next = theme === "dark" ? "light" : "dark";
     localStorage.setItem("pb_theme", next);
     setTheme(next);
-    applyDom(next, locale, false);
+    applyDom(next, locale);
   }
   function onLocale() {
     const next = locale === "ar" ? "en" : "ar";
     localStorage.setItem("pb_locale", next);
     setLocale(next);
-    applyDom(theme, next, mktPage || login || share);
+    applyDom(theme, next);
   }
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-theme={mktPage || login || share ? "studio" : theme} className="pb-studio" suppressHydrationWarning>
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-theme={theme} className="pb-studio" suppressHydrationWarning>
       <body suppressHydrationWarning>
         {appChrome && <AppShell theme={theme} locale={locale} onTheme={onTheme} onLocale={onLocale} />}
-        {mktPage && <StudioNav locale={locale} onLocale={onLocale} />}
+        {mktPage && <StudioNav locale={locale} theme={theme} onLocale={onLocale} onTheme={onTheme} />}
         {login && (
           <div className="login-tools">
-            <button type="button" className="sq" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>
+            <button type="button" className="ae-btn ghost" onClick={onTheme}>{theme === "dark" ? "Light" : "Dark"}</button>
+            <button type="button" className="ae-btn ghost" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>
           </div>
         )}
         <AuthGuard>
