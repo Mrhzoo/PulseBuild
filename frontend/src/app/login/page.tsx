@@ -18,7 +18,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState(DEV ? "demo-owner-pass" : "");
 
   useEffect(() => {
-    setLocale(localStorage.getItem("pb_locale") || "en");
+    const read = () => setLocale(localStorage.getItem("pb_locale") || "en");
+    read();
+    const id = window.setInterval(read, 400);
+    return () => window.clearInterval(id);
   }, []);
   const t = (locale === "ar" ? ar : en) as Record<string, string>;
 
@@ -44,16 +47,16 @@ export default function LoginPage() {
   return (
     <div className="login-stage">
       <form className="login-card" onSubmit={(e) => void onSubmit(e)}>
-        <p className="login-kicker"><a href="/">PulseBuild<span className="pigment">.</span></a></p>
+        <p className="login-kicker"><a href="/">PulseBuild.</a></p>
         <h1 className="login-title">{t.login_title}</h1>
         <p className="sub">{t.whatsapp_best_effort}</p>
-        <label className="mono-label">{t.email}</label>
+        <label>{t.email}</label>
         <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="username" />
-        <label className="mono-label">{t.password}</label>
+        <label>{t.password}</label>
         <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required autoComplete="current-password" />
-        <button className="sq fill" type="submit">{t.login}</button>
+        <button className="ae-btn" type="submit">{t.login}</button>
         {error && <p className="ev">{error}</p>}
-        <p className="muted"><a href="/contact">Request access</a> · <a href="/">{t.nav_home}</a></p>
+        <p className="muted"><a href="/contact">{t.request_pilot}</a> · <a href="/">{t.nav_home}</a></p>
       </form>
     </div>
   );
