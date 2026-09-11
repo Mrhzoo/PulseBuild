@@ -38,10 +38,9 @@ export default function AppShell({
   }
 
   return (
-    <header className="shell">
+    <header className="shell studio-app">
       <a className="shell-logo" href="/">
-        <span className="logo-circle">PB</span>
-        <strong>PulseBuild</strong>
+        PulseBuild<span className="pigment">.</span>
       </a>
       <nav className="shell-nav">
         {links.map((l) => (
@@ -52,9 +51,9 @@ export default function AppShell({
       </nav>
       <div className="shell-actions">
         <span className="chip">{role}</span>
-        <button type="button" onClick={onTheme}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>
-        <button type="button" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>
-        <button type="button" onClick={signOut}>{t.logout}</button>
+        <button type="button" className="sq" onClick={onTheme}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>
+        <button type="button" className="sq" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>
+        <button type="button" className="sq" onClick={signOut}>{t.logout}</button>
         <button type="button" className="burger-app" onClick={() => setOpen((v) => !v)} aria-label="Menu">☰</button>
       </div>
       {open && (
