@@ -1,5 +1,6 @@
 @import "../styles/tokens.css";
 @import "../styles/studio.css";
+@import "../styles/aether.css";
 
 * { box-sizing: border-box; }
 html, body { margin: 0; overflow-x: hidden; }
@@ -9,7 +10,7 @@ body {
   background: var(--bg);
 }
 main { padding: 88px 24px 64px; max-width: 980px; }
-main.flush { padding: 60px 0 0; max-width: none; }
+main.flush { padding: 0; max-width: none; }
 h1 { font-family: var(--font-display); font-size: 32px; margin: 0 0 8px; font-weight: 400; }
 .sub { color: var(--muted); margin-bottom: 24px; font-size: 12.5px; }
 .muted { color: var(--muted); font-size: 13px; }
