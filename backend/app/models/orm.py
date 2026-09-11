@@ -94,7 +94,7 @@ class Membership(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
     role: Mapped[Role] = mapped_column(pg_str_enum(Role), default=Role.OPS)
     tenant: Mapped[Tenant] = relationship(back_populates="memberships")
-    user: Mapped[User] = relationship(back_populates="user")
+    user: Mapped[User] = relationship(back_populates="memberships")
 
 
 class Project(Base):
