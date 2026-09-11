@@ -6,7 +6,7 @@ import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
 import en from "../../i18n/en.json";
 import ar from "../../i18n/ar.json";
 import StudioFooter from "../StudioFooter";
-import HeroLedGrid from "../HeroLedGrid";
+import HeroWaves from "../HeroWaves";
 import { MotionItem, MotionSection, MotionStagger } from "../motion/MotionSection";
 import { easeOut } from "../../lib/motion";
 
@@ -54,7 +54,7 @@ const WORK = [
     badge: "seed",
   },
   {
-    name: "Morning digest",
+    name: "Risk digest",
     type: "product",
     status: "live",
     noteKey: "channel_promise" as const,
@@ -78,10 +78,12 @@ export default function LandingAether() {
     target: heroRef,
     offset: ["start start", "end start"],
   });
-  const heroVisualOpacity = useTransform(scrollYProgress, [0, 0.55, 1], [1, 0.55, 0]);
-  const heroVisualY = useTransform(scrollYProgress, [0, 1], [0, 48]);
-  const heroVisualBlur = useTransform(scrollYProgress, [0, 1], [0, 10]);
-  const heroCopyOpacity = useTransform(scrollYProgress, [0, 0.7, 1], [1, 0.7, 0]);
+  // Longer, ease-out fade — hero lingers then softens into the next section
+  const heroVisualOpacity = useTransform(scrollYProgress, [0, 0.35, 0.7, 0.92], [1, 0.92, 0.45, 0]);
+  const heroVisualY = useTransform(scrollYProgress, [0, 0.92], [0, 72]);
+  const heroVisualBlur = useTransform(scrollYProgress, [0, 0.5, 0.92], [0, 4, 14]);
+  const heroCopyOpacity = useTransform(scrollYProgress, [0, 0.4, 0.75, 0.95], [1, 0.95, 0.4, 0]);
+  const heroCopyY = useTransform(scrollYProgress, [0, 0.95], [0, 36]);
   const heroFilter = useTransform(heroVisualBlur, (b) => `blur(${b}px)`);
 
   useEffect(() => {
@@ -177,11 +179,11 @@ export default function LandingAether() {
           }
           aria-hidden
         >
-          <HeroLedGrid />
+          <HeroWaves />
         </motion.div>
         <motion.div
           className="land-hero-copy"
-          style={reduce ? undefined : { opacity: heroCopyOpacity }}
+          style={reduce ? undefined : { opacity: heroCopyOpacity, y: heroCopyY }}
         >
           <motion.div
             initial={reduce ? false : { opacity: 0, y: 24 }}

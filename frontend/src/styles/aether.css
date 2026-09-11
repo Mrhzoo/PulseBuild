@@ -568,22 +568,22 @@ html.theme-anim, html.theme-anim body {
 .ae-icon svg { transition: transform .45s ease; }
 html.theme-anim .ae-icon svg { transform: rotate(180deg); }
 
-/* —— Hero LED mosaic (Canvas 2D background) —— */
-.sky-motion, .hero-stage, .hero-led-grid {
+/* —— Hero pigment wave field (Canvas 2D background) —— */
+.sky-motion, .hero-stage, .hero-led-grid, .hero-waves {
   position: absolute;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
 }
-.hero-led-canvas {
+.hero-led-canvas, .hero-waves-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   display: block;
 }
-/* Stronger left/start scrim so headline stays legible over the mosaic */
+/* Light start-side scrim — canyon void carries most contrast */
 .land-hero::after {
   content: "";
   position: absolute;
@@ -592,38 +592,38 @@ html.theme-anim .ae-icon svg { transform: rotate(180deg); }
   pointer-events: none;
   background: linear-gradient(
     to right,
-    rgba(12, 11, 10, 0.9) 0%,
-    rgba(12, 11, 10, 0.68) 24%,
-    rgba(12, 11, 10, 0.32) 46%,
-    rgba(12, 11, 10, 0.1) 62%,
-    transparent 78%
+    rgba(5, 4, 3, 0.55) 0%,
+    rgba(5, 4, 3, 0.22) 28%,
+    rgba(5, 4, 3, 0.05) 48%,
+    transparent 68%
   );
 }
 html[dir="rtl"] .land-hero::after {
   background: linear-gradient(
     to left,
-    rgba(12, 11, 10, 0.9) 0%,
-    rgba(12, 11, 10, 0.68) 24%,
-    rgba(12, 11, 10, 0.32) 46%,
-    rgba(12, 11, 10, 0.1) 62%,
-    transparent 78%
+    rgba(5, 4, 3, 0.55) 0%,
+    rgba(5, 4, 3, 0.22) 28%,
+    rgba(5, 4, 3, 0.05) 48%,
+    transparent 68%
   );
 }
-/* Soft bottom blend from dark hero into bone/studio ground */
+/* Longer soft bottom blend from dark hero into studio ground — no hard cut */
 .land-hero::before {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: min(28vh, 220px);
+  height: min(42vh, 360px);
   z-index: 2;
   pointer-events: none;
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    color-mix(in srgb, #121110 55%, transparent) 42%,
-    color-mix(in srgb, var(--pb-ground) 78%, #121110) 78%,
+    color-mix(in srgb, #121110 28%, transparent) 28%,
+    color-mix(in srgb, #121110 52%, transparent) 48%,
+    color-mix(in srgb, var(--pb-ground) 55%, #121110) 72%,
+    color-mix(in srgb, var(--pb-ground) 88%, #121110) 88%,
     var(--pb-ground) 100%
   );
 }
@@ -634,7 +634,7 @@ html[dir="rtl"] .land-hero::after {
   pointer-events: none;
   will-change: opacity, transform, filter;
 }
-/* Legacy orb/spotlight hooks (unused by LED hero; kept inert) */
+/* Legacy orb/spotlight hooks (unused by wave hero; kept inert) */
 .hero-spotlight, .orb { display: none; }
 
 .ae-progress { position: fixed; top: 0; inset-inline: 0; height: 2px; z-index: 80; pointer-events: none; opacity: 0; }
@@ -660,20 +660,29 @@ html[dir="rtl"] .land-hero::after {
 /* ========== LANDING ========== */
 .land { overflow-x: clip; background: var(--pb-ground); }
 .land-hero {
-  min-height: min(100vh, 860px);
-  padding: 100px 24px 56px;
-  display: grid;
-  place-items: center;
+  /* Canyon void ~38–70vh; bias copy to lower-middle of that void */
+  min-height: min(100svh, 920px);
+  padding: 18vh 24px 22vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
   position: relative;
-  background: #121110;
+  background: #050403;
   border-bottom: none;
   overflow: hidden;
   color: #E7E3DA;
 }
-.land-hero .mono-label { color: color-mix(in srgb, #F2EEE6 70%, #9B3418); }
-.land-hero .lede { color: color-mix(in srgb, #F2EEE6 86%, transparent); }
+.land-hero .mono-label { color: color-mix(in srgb, #F2EEE6 72%, #9B3418); }
+.land-hero .lede { color: color-mix(in srgb, #F2EEE6 88%, transparent); }
 .land-hero .pigment { color: #E8A080; }
 .land-hero h1 { color: #F2EEE6; }
+.land-hero .ae-btn {
+  min-height: 52px;
+  padding: 16px 26px;
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+}
 .land-hero .ae-btn.ghost {
   color: #E7E3DA;
   border-color: color-mix(in srgb, #E7E3DA 28%, transparent);
@@ -682,10 +691,13 @@ html[dir="rtl"] .land-hero::after {
   background: color-mix(in srgb, #E7E3DA 10%, transparent);
 }
 .land-hero-copy {
-  width: min(920px, 100%);
+  width: min(980px, 100%);
   position: relative;
-  z-index: 2;
+  z-index: 3;
   text-align: start;
+  /* nudge toward lower-middle of canyon */
+  margin-top: 6vh;
+  padding-bottom: 8px;
 }
 .land-hero-grid {
   width: min(1120px, 100%);
@@ -699,20 +711,27 @@ html[dir="rtl"] .land-hero::after {
 .land-hero h1 {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(44px, 6.4vw, 80px);
-  line-height: 1.02;
-  letter-spacing: -0.025em;
-  margin: 10px 0 18px;
-  max-width: 16ch;
+  font-size: clamp(56px, 8vw, 104px);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  margin: 14px 0 24px;
+  max-width: 13ch;
+  text-shadow: 0 2px 28px rgba(5, 4, 3, 0.65);
 }
-.land-hero .lede { font-size: 14px; max-width: 42ch; }
+.land-hero .lede {
+  font-size: clamp(14px, 1.35vw, 16px);
+  max-width: 48ch;
+  line-height: 1.7;
+  margin-bottom: 32px;
+  text-shadow: 0 1px 16px rgba(5, 4, 3, 0.55);
+}
 .land-caption {
-  position: absolute;
-  bottom: 20px;
-  inset-inline: 0;
-  text-align: center;
-  z-index: 2;
-  color: color-mix(in srgb, #E7E3DA 55%, transparent);
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  text-align: start;
+  margin: 12px 0 0;
+  color: color-mix(in srgb, #E7E3DA 50%, transparent);
 }
 .land-cutout { display: none; }
 .land-sec {

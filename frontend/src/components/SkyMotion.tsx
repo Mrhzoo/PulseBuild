@@ -1,7 +1,6 @@
+/**
+ * Legacy export — homepage hero uses the pigment wave-field background.
+ */
 "use client";
 
-/**
- * Legacy export — homepage hero now uses the LED mosaic background.
- * Kept so any stray imports keep working.
- */
-export { default } from "./HeroLedGrid";
+export { default } from "./HeroWaves";
