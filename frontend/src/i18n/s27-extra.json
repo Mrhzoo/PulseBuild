@@ -1,0 +1,10 @@
+{
+  "exposure_open_act": "Open Act",
+  "exposure_open_watch": "Open Watch",
+  "exposure_days": "Days flagged",
+  "exposure_margin": "Margin at risk",
+  "exposure_shared": "Shared",
+  "exposure_note": "Estimated exposure from your flagged days and the rate in Settings — not a guarantee.",
+  "set_aed_per_day": "Set AED per delay day",
+  "aed_per_day": "AED per delay day"
+}
