@@ -68,6 +68,7 @@ class Tenant(Base):
     billing_status: Mapped[str] = mapped_column(String(20), default="trialing")
     onboarding_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     data_residency: Mapped[str] = mapped_column(String(40), default="default")
+    aed_per_delay_day: Mapped[float | None] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     projects: Mapped[list[Project]] = relationship(back_populates="tenant")
     memberships: Mapped[list[Membership]] = relationship(back_populates="tenant")
@@ -93,7 +94,7 @@ class Membership(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
     role: Mapped[Role] = mapped_column(pg_str_enum(Role), default=Role.OPS)
     tenant: Mapped[Tenant] = relationship(back_populates="memberships")
-    user: Mapped[User] = relationship(back_populates="memberships")
+    user: Mapped[User] = relationship(back_populates="user")
 
 
 class Project(Base):
