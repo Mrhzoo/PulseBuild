@@ -30,7 +30,35 @@ async def onboarding_status(principal: Principal = Depends(get_principal), sessi
     tenant = await session.get(Tenant, principal.tenant_id)
     if not tenant:
         raise HTTPException(404, "tenant")
-    return {"completed": bool(tenant.onboarding_completed_at), "onboarding_completed_at": tenant.onboarding_completed_at.isoformat() if tenant.onboarding_completed_at else None, "company": tenant.name}
+    return {
+        "completed": bool(tenant.onboarding_completed_at),
+        "onboarding_completed_at": tenant.onboarding_completed_at.isoformat() if tenant.onboarding_completed_at else None,
+        "company": tenant.name,
+        "aed_per_delay_day": tenant.aed_per_delay_day,
+    }
+
+
+@router.get("/settings/tenant")
+async def get_tenant_settings(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
+    tenant = await session.get(Tenant, principal.tenant_id)
+    if not tenant:
+        raise HTTPException(404, "tenant")
+    return {"name": tenant.name, "aed_per_delay_day": tenant.aed_per_delay_day, "currency": tenant.currency.value}
+
+
+@router.patch("/settings/tenant")
+async def patch_tenant_settings(payload: dict, principal: Principal = Depends(require_write), session: AsyncSession = Depends(get_session)) -> dict:
+    tenant = await session.get(Tenant, principal.tenant_id)
+    if not tenant:
+        raise HTTPException(404, "tenant")
+    if "aed_per_delay_day" in payload:
+        raw = payload.get("aed_per_delay_day")
+        if raw is None or raw == "":
+            tenant.aed_per_delay_day = None
+        else:
+            tenant.aed_per_delay_day = float(raw)
+    await session.commit()
+    return {"name": tenant.name, "aed_per_delay_day": tenant.aed_per_delay_day}
 
 
 @router.get("/inbound/status")
