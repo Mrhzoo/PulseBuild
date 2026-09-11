@@ -47,8 +47,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-theme={theme}>
-      <body>
+    // suppressHydrationWarning: Grammarly-style extensions inject data-gr-* on <body> before hydrate.
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-theme={theme} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         {appChrome && <AppShell theme={theme} locale={locale} onTheme={onTheme} onLocale={onLocale} />}
         {mktPage && <MarketingHeader theme={theme} locale={locale} onTheme={onTheme} onLocale={onLocale} />}
         {login && (
