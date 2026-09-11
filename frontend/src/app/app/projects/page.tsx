@@ -16,7 +16,7 @@ function auth() {
 function DocRow({ d, canWrite, projects, t, onReassign, onTicket }: { d: Doc; canWrite: boolean; projects: Project[]; t: Record<string, string>; onReassign: (id: string, pid: string) => void; onTicket: (id: string) => void }) {
   const bad = d.parse_status === "needs_ocr" || d.parse_status === "needs_better_file";
   return (
-    <div className="card">
+    <div className="ae-card">
       <p>{d.filename} · {d.parse_status}</p>
       {d.coach && <p className={bad ? "ask-banner" : "muted"}>{d.coach}</p>}
       {canWrite && d.unassigned && (
@@ -25,7 +25,7 @@ function DocRow({ d, canWrite, projects, t, onReassign, onTicket }: { d: Doc; ca
           {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       )}
-      {canWrite && bad && <p><button type="button" onClick={() => onTicket(d.id)}>{t.ocr_ticket}</button></p>}
+      {canWrite && bad && <p><button type="button" className="ae-btn ghost" onClick={() => onTicket(d.id)}>{t.ocr_ticket}</button></p>}
     </div>
   );
 }
@@ -122,29 +122,29 @@ export default function ProjectsPage() {
   const unassigned = docs.filter((d) => d.unassigned);
 
   return (
-    <article>
+    <article className="ae-page">
       <h1>{t.projects}</h1>
       <p className="sub">{t.forward_tip}</p>
-      {quota && <p className="card">{quota} <a href="/app/billing">{t.billing}</a></p>}
+      {quota && <p className="ask-banner">{quota} <a className="ae-btn" href="/app/billing">{t.billing}</a></p>}
       {note && <p className="muted">{note}</p>}
       {runOut && <p className="ask-banner">{runOut} — <a href="/app">{t.open_digest}</a></p>}
       {projects.length === 0 && (
-        <p className="card">{t.empty_projects} <a href="/app/onboarding">{t.onboarding}</a></p>
+        <div className="ae-empty">{t.empty_projects} <a className="ae-btn" href="/app/onboarding">{t.onboarding}</a></div>
       )}
 
       {canWrite && (
-        <form className="card" onSubmit={(e) => void createProject(e)}>
+        <form className="ae-card ae-field" onSubmit={(e) => void createProject(e)}>
           <h2>{t.create_project}</h2>
           <label htmlFor="proj-name">{t.company_name}</label>
           <input id="proj-name" name="name" required />
           <label htmlFor="proj-code">{t.project_code}</label>
           <input id="proj-code" name="code" required />
-          <button type="submit">{t.create_project}</button>
+          <button className="ae-btn" type="submit">{t.create_project}</button>
         </form>
       )}
 
       {canWrite && (
-        <div className="card">
+        <div className="ae-card">
           <h2>{t.upload_unassigned}</h2>
           <input type="file" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(null, f); }} />
         </div>
@@ -152,7 +152,7 @@ export default function ProjectsPage() {
 
       {unassigned.length > 0 && (
         <section>
-          <h2 className="dash-sec">{t.unassigned}</h2>
+          <h2 className="mono-label">{t.unassigned}</h2>
           {unassigned.map((d) => (
             <DocRow key={d.id} d={d} canWrite={canWrite} projects={projects} t={t} onReassign={reassign} onTicket={(id) => void ticket(id)} />
           ))}
@@ -160,7 +160,7 @@ export default function ProjectsPage() {
       )}
 
       {projects.map((p) => (
-        <section key={p.id} className="dash-card">
+        <section key={p.id} className="ae-card">
           <h2>{p.name} <span className="muted">{p.code}</span></h2>
           <p className="ev">{p.forward_address}</p>
           {docs.filter((d) => d.project_id === p.id).map((d) => (
@@ -169,7 +169,7 @@ export default function ProjectsPage() {
           {canWrite && (
             <>
               <input type="file" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(p.id, f); }} />
-              <p><button type="button" onClick={() => void run(p.id)}>{t.run_agents}</button></p>
+              <p><button type="button" className="ae-btn ghost" onClick={() => void run(p.id)}>{t.run_agents}</button></p>
             </>
           )}
         </section>

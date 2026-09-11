@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import en from "../../i18n/en.json";
 import ar from "../../i18n/ar.json";
+import MarketingFrame from "../../components/MarketingFrame";
 
 export default function ContactPage() {
   const [locale, setLocale] = useState("en");
@@ -14,14 +15,11 @@ export default function ContactPage() {
   }, []);
   const t = (locale === "ar" ? ar : en) as Record<string, string>;
   return (
-    <article className="mkt-page">
-      <p className="mono-label">{t.nav_contact}</p>
-      <h1>{t.contact_h}</h1>
-      <p className="lede">{t.contact_lede}</p>
+    <MarketingFrame locale={locale} kicker={t.nav_contact} title={t.contact_h} lede={t.contact_lede}>
       <div className="ae-card">
         <p>{t.contact_how}</p>
         <a className="ae-btn" href="mailto:hello@pulsebuild.ae">{t.contact_mail}</a>
       </div>
-    </article>
+    </MarketingFrame>
   );
 }

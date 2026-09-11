@@ -6,7 +6,7 @@ import en from "../i18n/en.json";
 import ar from "../i18n/ar.json";
 
 const ALL = [
-  { href: "/app", key: "digest_title", roles: ["owner", "ops", "reader"] },
+  { href: "/app", key: "nav_digest", roles: ["owner", "ops", "reader"] },
   { href: "/app/projects", key: "projects", roles: ["owner", "ops", "reader"] },
   { href: "/app/flags", key: "flags", roles: ["owner", "ops", "reader"] },
   { href: "/app/billing", key: "billing", roles: ["owner", "ops"] },
@@ -38,30 +38,28 @@ export default function AppShell({
   }
 
   return (
-    <header className="shell studio-app">
-      <a className="shell-logo" href="/">
-        PulseBuild<span className="pigment">.</span>
-      </a>
-      <nav className="shell-nav">
+    <header className="ae-nav ae-shell">
+      <a className="wordmark" href="/">PulseBuild.</a>
+      <nav>
         {links.map((l) => (
           <a key={l.href} href={l.href} className={path === l.href ? "active" : ""}>
             {t[l.key] || l.key}
           </a>
         ))}
       </nav>
-      <div className="shell-actions">
+      <div className="tools">
         <span className="chip">{role}</span>
-        <button type="button" className="sq" onClick={onTheme}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>
-        <button type="button" className="sq" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>
-        <button type="button" className="sq" onClick={signOut}>{t.logout}</button>
-        <button type="button" className="burger-app" onClick={() => setOpen((v) => !v)} aria-label="Menu">☰</button>
+        <button type="button" className="ae-btn ghost" onClick={onTheme}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>
+        <button type="button" className="ae-btn ghost" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>
+        <button type="button" className="ae-btn ghost" onClick={signOut}>{t.logout}</button>
+        <button type="button" className="ae-btn ghost burger-app" onClick={() => setOpen((v) => !v)} aria-label={t.menu}>{t.menu}</button>
       </div>
       {open && (
         <div className="shell-drawer">
           {links.map((l) => (
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{t[l.key] || l.key}</a>
           ))}
-          <button type="button" onClick={signOut}>{t.logout}</button>
+          <button type="button" className="ae-btn ghost" onClick={signOut}>{t.logout}</button>
         </div>
       )}
     </header>

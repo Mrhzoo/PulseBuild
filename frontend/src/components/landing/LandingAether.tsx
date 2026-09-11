@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import en from "../../i18n/en.json";
 import ar from "../../i18n/ar.json";
+import StudioFooter from "../StudioFooter";
 
 export default function LandingAether() {
   const [locale, setLocale] = useState("en");
@@ -43,7 +44,7 @@ export default function LandingAether() {
         <div className="ae-grid">
           <article className="ae-card"><p className="mono-label">{t.section_act}</p><h3>{t.act_def}</h3></article>
           <article className="ae-card"><p className="mono-label">{t.section_watch}</p><h3>{t.watch_def}</h3></article>
-          <article className="ae-card"><p className="mono-label">SLA</p><h3>{t.sla_def}</h3></article>
+          <article className="ae-card"><p className="mono-label">{t.sla_label}</p><h3>{t.sla_def}</h3></article>
         </div>
       </section>
       <section className="ae-section">
@@ -56,16 +57,13 @@ export default function LandingAether() {
       </section>
       <section className="ae-section" style={{ textAlign: "center" }}>
         <h2>{t.hero_line1} {t.hero_line2}</h2>
-        <p className="ae-copy">{t.trust}</p>
+        <p className="ae-copy" style={{ marginLeft: "auto", marginRight: "auto" }}>{t.trust}</p>
         <div className="ae-actions">
           <a className="ae-btn" href="/contact">{t.request_pilot}</a>
           <a className="ae-btn ghost" href="/pricing">{t.nav_pricing}</a>
         </div>
       </section>
-      <footer className="ae-footer">
-        <span>{t.whatsapp_best_effort}</span>
-        <span><a href="/contact">{t.nav_contact}</a> · <a href="/pricing">{t.nav_pricing}</a></span>
-      </footer>
+      <StudioFooter locale={locale} />
     </div>
   );
 }

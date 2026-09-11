@@ -54,24 +54,24 @@ export default function AppBillingPage() {
   const notConfigured = Boolean(status?.billing_not_configured);
 
   return (
-    <article>
+    <article className="ae-page">
       <h1>{t.billing}</h1>
       <p className="sub">{t.whatsapp_best_effort}</p>
       {flash && <p className="ask-banner">{flash === "canceled" ? t.billing_canceled : flash === "stub" ? t.billing_stub_entitlement : t.billing_ok}</p>}
-      {err && <p className="card">{t.billing_retry} <button type="button" onClick={() => void load()}>{t.refresh}</button></p>}
-      {actionErr && <p className="card">{actionErr}</p>}
+      {err && <p className="ae-card">{t.billing_retry} <button type="button" className="ae-btn ghost" onClick={() => void load()}>{t.refresh}</button></p>}
+      {actionErr && <p className="ae-card">{actionErr}</p>}
       {notConfigured && <p className="ask-banner">{t.billing_not_configured}</p>}
       {status && (
-        <div className="dash-card">
-          <p>{String(status.plan)} · {String(status.billing_status)} · AED</p>
+        <div className="plate rec">
+          <p className="mono-label">{String(status.plan)} · {String(status.billing_status)} · AED</p>
           <p>{t.projects_quota}: {String(status.projects_used)} / {String(status.project_quota)}</p>
           {status.quota_hit ? <p className="ask-banner">{t.quota_full}</p> : null}
           {status.stub ? <p className="muted">{t.billing_stub_entitlement}</p> : status.stripe_live ? <p className="muted">{t.stripe_live}</p> : null}
           {owner && !notConfigured && (
             <div className="dash-actions">
-              <button type="button" onClick={() => void post("/api/billing/checkout", {})}>{t.upgrade}</button>
-              <button type="button" onClick={() => void post("/api/billing/checkout", { addon: true })}>{t.project_pack}</button>
-              <button type="button" onClick={() => void post("/api/billing/portal", {})}>{t.customer_portal}</button>
+              <button type="button" className="ae-btn" onClick={() => void post("/api/billing/checkout", {})}>{t.upgrade}</button>
+              <button type="button" className="ae-btn ghost" onClick={() => void post("/api/billing/checkout", { addon: true })}>{t.project_pack}</button>
+              <button type="button" className="ae-btn ghost" onClick={() => void post("/api/billing/portal", {})}>{t.customer_portal}</button>
             </div>
           )}
         </div>

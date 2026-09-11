@@ -81,8 +81,8 @@ function ActRow({ card, canWrite, t, kind }: { card: Card; canWrite: boolean; t:
       </div>
       {canWrite && (
         <div className="dash-actions">
-          <button type="button" className="sq" onClick={() => void flag()}>{t.flag_this}</button>
-          <button type="button" className="sq" onClick={() => void dismiss()}>{t.dismiss}</button>
+          <button type="button" className="ae-btn" onClick={() => void flag()}>{t.flag_this}</button>
+          <button type="button" className="ae-btn ghost" onClick={() => void dismiss()}>{t.dismiss}</button>
         </div>
       )}
     </article>
@@ -153,38 +153,43 @@ export default function DigestAppPage() {
   const empty = digest && digest.act.length === 0 && digest.watch.length === 0;
 
   return (
-    <div className="dash">
-      <header className="dash-head">
+    <div className="ae-page">
+      <header>
         <p className="mono-label">{digest?.date} · {digest?.company || digest?.tenant || ""}</p>
         <h1>{t.command_title}</h1>
         <p className="sub">{digest?.channel_promise || t.channel_promise}</p>
         {canWrite && (
           <div className="dash-toolbar">
-            <button type="button" className="sq fill" onClick={() => void sendBriefing()} disabled={sending}>{sending ? t.sending : t.send_briefing}</button>
-            <button type="button" className="sq" onClick={() => void load()}>{t.refresh}</button>
+            <button type="button" className="ae-btn" onClick={() => void sendBriefing()} disabled={sending}>{sending ? t.sending : t.send_briefing}</button>
+            <button type="button" className="ae-btn ghost" onClick={() => void load()}>{t.refresh}</button>
           </div>
         )}
         {sent && <p className="muted">{sent}</p>}
       </header>
       {exposure && (
-        <div className="exposure">
-          <div><span className="mono-label">{t.exposure_open_act}</span><b>{exposure.open_act}</b></div>
-          <div><span className="mono-label">{t.exposure_open_watch}</span><b>{exposure.open_watch}</b></div>
-          <div><span className="mono-label">{t.exposure_days}</span><b>{exposure.days_flagged ?? "—"}</b></div>
-          <div>
-            <span className="mono-label">{t.exposure_margin}</span>
-            <b>{exposure.margin_at_risk == null ? "—" : `AED ${exposure.margin_at_risk}`}</b>
-            {exposure.aed_per_delay_day == null && <a className="sq" href="/app/settings">{t.set_aed_per_day}</a>}
+        <div className="ae-stat-row exposure">
+          <div className="ae-tile"><div className="k">{t.exposure_open_act}</div><div className="v">{exposure.open_act}</div></div>
+          <div className="ae-tile"><div className="k">{t.exposure_open_watch}</div><div className="v">{exposure.open_watch}</div></div>
+          <div className="ae-tile ae-sun" aria-hidden />
+          <div className="ae-tile"><div className="k">{t.exposure_days}</div><div className="v">{exposure.days_flagged ?? "—"}</div></div>
+          <div className="ae-tile">
+            <div className="k">{t.exposure_margin}</div>
+            <div className="v" style={{ fontSize: 22 }}>{exposure.margin_at_risk == null ? "—" : `AED ${exposure.margin_at_risk}`}</div>
+            {exposure.aed_per_delay_day == null && <a className="ae-btn ghost" href="/app/settings">{t.set_aed_per_day}</a>}
           </div>
-          <div><span className="mono-label">{t.exposure_shared}</span><b>{exposure.shared}</b></div>
         </div>
       )}
-      {exposure && <p className="muted">{t.exposure_note}</p>}
-      {needLogin && <div className="card"><a href="/login">{t.sign_in_link}</a></div>}
-      {error && <div className="card">{error}</div>}
-      {empty && <div className="card">{t.quiet_morning} <a href="/app/projects">{t.upload}</a></div>}
+      {exposure && <p className="muted">{t.exposure_note} · {t.exposure_shared}: {exposure.shared}</p>}
+      {needLogin && <div className="ae-empty"><a className="ae-btn" href="/login">{t.sign_in_link}</a></div>}
+      {error && <div className="ae-card">{error}</div>}
+      {empty && (
+        <div className="ae-empty">
+          <p>{t.quiet_morning}</p>
+          <a className="ae-btn" href="/app/projects">{t.upload}</a>
+        </div>
+      )}
       {digest && (
-        <div className="command">
+        <div className="ae-command">
           <section>
             <p className="mono-label">{t.act_inbox}</p>
             {digest.act.map((c) => <ActRow key={c.id} card={c} canWrite={canWrite} t={t} kind="act" />)}

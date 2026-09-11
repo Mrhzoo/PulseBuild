@@ -19,7 +19,7 @@ const META = [
 
 export default function SettingsPage() {
   const [locale, setLocale] = useState("en");
-  const [theme, setTheme] = useState("studio");
+  const [theme, setTheme] = useState("light");
   const t = (locale === "ar" ? ar : en) as Record<string, string>;
   const role = typeof window !== "undefined" ? localStorage.getItem("pb_role") || "" : "";
   const canWrite = role === "owner" || role === "ops";
@@ -32,8 +32,9 @@ export default function SettingsPage() {
   const [aed, setAed] = useState("");
 
   useEffect(() => {
-    setLocale(localStorage.getItem("pb_locale") || "en");
-    setTheme(localStorage.getItem("pb_theme") || "studio");
+    setLocale(localStorage.getItem("pb_locale") === "ar" ? "ar" : "en");
+    const stored = localStorage.getItem("pb_theme");
+    setTheme(stored === "dark" ? "dark" : "light");
     const headers = { Authorization: `Bearer ${localStorage.getItem("pb_token") || ""}` };
     void fetch(`${API}/api/people`, { headers }).then((r) => (r.ok ? r.json() : [])).then(setPeople);
     void fetch(`${API}/api/inbound/status`, { headers }).then((r) => (r.ok ? r.json() : null)).then(setInbound);
@@ -44,9 +45,10 @@ export default function SettingsPage() {
   }, []);
 
   function persistTheme(next: string) {
-    localStorage.setItem("pb_theme", next);
-    setTheme(next);
-    document.documentElement.dataset.theme = next;
+    const th = next === "dark" ? "dark" : "light";
+    localStorage.setItem("pb_theme", th);
+    setTheme(th);
+    document.documentElement.dataset.theme = th;
   }
   function persistLocale(next: string) {
     localStorage.setItem("pb_locale", next);
@@ -86,27 +88,29 @@ export default function SettingsPage() {
   }
 
   return (
-    <article>
+    <article className="ae-page">
       <h1>{t.settings}</h1>
-      <section className="card">
+      <section className="ae-card">
         <h2>{t.prefs}</h2>
-        <button type="button" onClick={() => persistTheme(theme === "dark" ? "studio" : "dark")}>{theme}</button>{" "}
-        <button type="button" onClick={() => persistLocale(locale === "en" ? "ar" : "en")}>{locale}</button>
+        <div className="dash-actions">
+          <button type="button" className="ae-btn ghost" onClick={() => persistTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>
+          <button type="button" className="ae-btn ghost" onClick={() => persistLocale(locale === "en" ? "ar" : "en")}>{locale === "ar" ? "EN" : "ع"}</button>
+        </div>
       </section>
-      <section className="card">
+      <section className="ae-card ae-field">
         <h2>{t.aed_per_day}</h2>
         <p className="muted">{t.exposure_note}</p>
         <input value={aed} onChange={(e) => setAed(e.target.value)} inputMode="decimal" disabled={!canWrite} />
-        {canWrite && <button type="button" className="sq" onClick={() => void saveAed()}>{t.set_aed_per_day}</button>}
+        {canWrite && <button type="button" className="ae-btn" onClick={() => void saveAed()}>{t.set_aed_per_day}</button>}
       </section>
-      <section className="card">
+      <section className="ae-card">
         <h2>{t.pilot_checklist}</h2>
         <p className="muted">{t.pilot_checklist_sub}</p>
         {(pilot?.items || []).map((item: { id: string; label: string; ok: boolean | null }) => (
           <p key={item.id} className="ev">{mark(item.ok)} {item.label}</p>
         ))}
       </section>
-      <section className="card">
+      <section className="ae-card">
         <h2>{t.inbound_title}</h2>
         <p className="muted">{inbound?.note || t.inbound_stub}</p>
         <p className="sub">{t.inbound_test}</p>
@@ -118,7 +122,7 @@ export default function SettingsPage() {
         ))}
         {inbound?.last_inbound && <p className="muted">{inbound.last_inbound.filename} · {inbound.last_inbound.parse_status}</p>}
       </section>
-      <section className="card">
+      <section className="ae-card ae-field">
         <h2>{t.people}</h2>
         {people.map((p) => (
           <p key={p.user_id}>{p.email} · {p.role} · {p.whatsapp_e164 || "—"}</p>
@@ -127,16 +131,16 @@ export default function SettingsPage() {
           <>
             <label htmlFor="invite-email">{t.email}</label>
             <input id="invite-email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <button type="button" onClick={() => void invite()}>{t.invite_reader}</button>
+            <button type="button" className="ae-btn" onClick={() => void invite()}>{t.invite_reader}</button>
             {temp && <p className="ask-banner">{t.temp_password}: {temp}</p>}
           </>
         )}
         <p className="sub">{t.whatsapp_best_effort}</p>
         <label htmlFor="wa">{t.save_whatsapp}</label>
         <input id="wa" value={wa} onChange={(e) => setWa(e.target.value)} />
-        <button type="button" onClick={() => void saveWa()}>{t.save_whatsapp}</button>
+        <button type="button" className="ae-btn ghost" onClick={() => void saveWa()}>{t.save_whatsapp}</button>
       </section>
-      <details className="card" open>
+      <details className="ae-card" open>
         <summary>{t.meta_title}</summary>
         <p className="muted">{t.meta_manual}</p>
         <ul>

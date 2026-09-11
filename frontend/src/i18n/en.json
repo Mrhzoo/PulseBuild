@@ -182,5 +182,15 @@
   "contact_mail": "Email hello@pulsebuild.ae",
   "cases_h": "Work, not testimonials.",
   "cases_lede": "No invented customer quotes. Demo seed only until a named pilot agrees.",
-  "cases_demo": "Seed programme movement becomes Watch. Quiet jobs stay quiet."
+  "cases_demo": "Seed programme movement becomes Watch. Quiet jobs stay quiet.",
+  "nav_digest": "Digest",
+  "menu": "Menu",
+  "sla_label": "SLA",
+  "demo_label": "Demo",
+  "role_owner_label": "Owner",
+  "role_ops_label": "Ops",
+  "role_reader_label": "Reader",
+  "flags_revoked_title": "Revoked shares",
+  "flags_revoked_sub": "These are not open. The proof link no longer works.",
+  "share_loading": "Loading proof…"
 }

@@ -182,5 +182,15 @@
   "contact_mail": "اكتب hello@pulsebuild.ae",
   "cases_h": "عمل، ليست شهادات.",
   "cases_lede": "لا نخترع آراء زبائن. بذور تجريبي حتى يوافق عميل.",
-  "cases_demo": "حركة البرنامج تصبح مراقبة. المشاريع الهادئة تبقى هادئة."
+  "cases_demo": "حركة البرنامج تصبح مراقبة. المشاريع الهادئة تبقى هادئة.",
+  "nav_digest": "الملخص",
+  "menu": "القائمة",
+  "sla_label": "الالتزام",
+  "demo_label": "تجريبي",
+  "role_owner_label": "المالك",
+  "role_ops_label": "تشغيل",
+  "role_reader_label": "قارئ",
+  "flags_revoked_title": "مشاركات ملغاة",
+  "flags_revoked_sub": "هذه ليست مفتوحة. رابط الإثبات لم يعد يعمل.",
+  "share_loading": "جارٍ تحميل الإثبات…"
 }

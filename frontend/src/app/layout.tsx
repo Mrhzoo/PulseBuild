@@ -6,10 +6,12 @@ import "./globals.css";
 import AppShell from "../components/AppShell";
 import AuthGuard from "../components/AuthGuard";
 import StudioNav from "../components/StudioNav";
+import en from "../i18n/en.json";
+import ar from "../i18n/ar.json";
 
 function applyDom(theme: string, locale: string) {
   document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
-  document.documentElement.lang = locale;
+  document.documentElement.lang = locale === "ar" ? "ar" : "en";
   document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
 }
 
@@ -24,11 +26,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const appChrome = !landing && !login && !share && !mktPage;
   const [locale, setLocale] = useState("en");
   const [theme, setTheme] = useState("light");
+  const t = (locale === "ar" ? ar : en) as Record<string, string>;
 
   useEffect(() => {
-    const loc = localStorage.getItem("pb_locale") || "en";
-    const stored = localStorage.getItem("pb_theme") || "light";
+    const loc = localStorage.getItem("pb_locale") === "ar" ? "ar" : "en";
+    const stored = localStorage.getItem("pb_theme");
     const th = stored === "dark" ? "dark" : "light";
+    if (stored === "studio") localStorage.setItem("pb_theme", "light");
     setLocale(loc);
     setTheme(th);
     applyDom(th, loc);
@@ -48,18 +52,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-theme={theme} className="pb-studio" suppressHydrationWarning>
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-theme={theme} suppressHydrationWarning>
       <body suppressHydrationWarning>
         {appChrome && <AppShell theme={theme} locale={locale} onTheme={onTheme} onLocale={onLocale} />}
         {mktPage && <StudioNav locale={locale} theme={theme} onLocale={onLocale} onTheme={onTheme} />}
         {login && (
           <div className="login-tools">
-            <button type="button" className="ae-btn ghost" onClick={onTheme}>{theme === "dark" ? "Light" : "Dark"}</button>
+            <button type="button" className="ae-btn ghost" onClick={onTheme}>{theme === "dark" ? t.theme_light : t.theme_dark}</button>
             <button type="button" className="ae-btn ghost" onClick={onLocale}>{locale === "ar" ? "EN" : "ع"}</button>
           </div>
         )}
         <AuthGuard>
-          <main className={landing || login || mktPage ? "flush" : undefined}>{children}</main>
+          <main className={landing || login || mktPage || share ? "flush" : undefined}>{children}</main>
         </AuthGuard>
       </body>
     </html>

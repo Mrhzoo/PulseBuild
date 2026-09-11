@@ -65,55 +65,60 @@ export default function AppOnboardingPage() {
   const forwardBanner = forward ? (
     <p className="ask-banner">
       {t.forward_tip} <strong>{forward}</strong>{" "}
-      <button type="button" onClick={() => { void navigator.clipboard.writeText(forward); setCopied(true); }}>{copied ? t.copied : t.copy_share}</button>{" "}
-      <a href="/app/projects">{t.upload}</a>
+      <button type="button" className="ae-btn ghost" onClick={() => { void navigator.clipboard.writeText(forward); setCopied(true); }}>{copied ? t.copied : t.copy_share}</button>{" "}
+      <a className="ae-btn" href="/app/projects">{t.upload}</a>
     </p>
   ) : null;
 
   if (done) {
     return (
-      <article>
+      <article className="ae-page">
         <h1>{t.onboarding}</h1>
         {forwardBanner}
-        <p className="card">{t.onboarding_done} <a href="/app">{t.open_digest}</a></p>
+        <div className="ae-empty">{t.onboarding_done} <a className="ae-btn" href="/app">{t.open_digest}</a></div>
       </article>
     );
   }
 
   return (
-    <article>
+    <article className="ae-page">
       <h1>{t.onboarding}</h1>
       <p className="muted">{t.step_n.replace("{n}", String(step))}</p>
+      <div className="ae-stat-row" style={{ gridTemplateColumns: "repeat(4, 1fr)", marginBottom: 16 }}>
+        {[1, 2, 3, 4].map((n) => (
+          <div key={n} className={n === step ? "ae-tile ae-sun" : "ae-tile"}><div className="k">{n}</div></div>
+        ))}
+      </div>
       {forwardBanner}
       {step === 1 && (
-        <div className="card">
+        <div className="ae-card ae-field">
           <h2>{t.create_project}</h2>
           <input value={name} onChange={(e) => setName(e.target.value)} />
           <input value={code} onChange={(e) => setCode(e.target.value)} />
-          <button type="button" onClick={() => void createProject()}>{t.create_project}</button>
+          <button type="button" className="ae-btn" onClick={() => void createProject()}>{t.create_project}</button>
         </div>
       )}
       {step === 2 && (
-        <div className="card">
+        <div className="ae-card ae-field">
           <h2>{t.invite_reader}</h2>
           <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} type="email" />
-          <button type="button" onClick={() => void invite()}>{t.invite_reader}</button>
+          <button type="button" className="ae-btn" onClick={() => void invite()}>{t.invite_reader}</button>
           {temp && <p className="ask-banner">{t.temp_password}: {temp}</p>}
-          <p><button type="button" onClick={() => setStep(3)}>{t.skip}</button></p>
+          <p><button type="button" className="ae-btn ghost" onClick={() => setStep(3)}>{t.skip}</button></p>
         </div>
       )}
       {step === 3 && (
-        <div className="card">
+        <div className="ae-card ae-field">
           <h2>{t.save_whatsapp}</h2>
           <p className="sub">{t.whatsapp_best_effort}</p>
           <input value={wa} onChange={(e) => setWa(e.target.value)} />
-          <button type="button" onClick={() => void saveWa()}>{t.save_continue}</button>
+          <button type="button" className="ae-btn" onClick={() => void saveWa()}>{t.save_continue}</button>
         </div>
       )}
       {step === 4 && (
-        <div className="card">
+        <div className="ae-card">
           <h2>{t.onboarding_done}</h2>
-          <button type="button" onClick={() => void complete()}>{t.finish}</button>
+          <button type="button" className="ae-btn" onClick={() => void complete()}>{t.finish}</button>
         </div>
       )}
     </article>

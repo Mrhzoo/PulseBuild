@@ -66,36 +66,54 @@ export default function FlagsWorkspace() {
     }
   }
 
+  const open = rows.filter((r) => !r.share_revoked);
+  const revoked = rows.filter((r) => r.share_revoked);
+
   return (
-    <article>
+    <article className="ae-page">
       <h1>{t.flags_title}</h1>
       <p className="sub">{t.flags_sub}</p>
-      {canWrite && <p><button type="button" onClick={() => void pack()}>{t.pack_create}</button></p>}
-      {packUrl && <p className="ask-banner">{t.pack_ready} <button type="button" onClick={() => { void navigator.clipboard.writeText(packUrl); setCopied("pack"); }}>{copied === "pack" ? t.copied : t.copy_share}</button></p>}
-      {error && <div className="card">{error}</div>}
-      {rows.length === 0 && (
-        <div className="card">{t.flags_empty} <a href="/app">{t.open_digest}</a></div>
+      {canWrite && <p><button type="button" className="ae-btn" onClick={() => void pack()}>{t.pack_create}</button></p>}
+      {packUrl && <p className="ask-banner">{t.pack_ready} <button type="button" className="ae-btn ghost" onClick={() => { void navigator.clipboard.writeText(packUrl); setCopied("pack"); }}>{copied === "pack" ? t.copied : t.copy_share}</button></p>}
+      {error && <div className="ae-card">{error}</div>}
+      {open.length === 0 && (
+        <div className="ae-empty">{t.flags_empty} <a className="ae-btn" href="/app">{t.open_digest}</a></div>
       )}
-      {rows.map((row) => (
-        <article className="dash-card act" key={row.id}>
+      {open.map((row) => (
+        <article className="ae-card dash-card act" key={row.id}>
           <div className="dash-meta">
             <span className="sev-pill">{row.pack ? t.pack_label : row.project_name}</span>
             <span className="muted">{row.created_at}</span>
-            {row.share_revoked && <span className="chip">{t.share_revoked}</span>}
           </div>
           <h3>{row.pack ? t.pack_label : row.title}</h3>
           <p className="why">{row.pack ? t.pack_watermark : row.note}</p>
           <div className="dash-actions">
             {row.share_url && (
-              <button type="button" onClick={() => { void navigator.clipboard.writeText(row.share_url || ""); setCopied(row.id); }}>
+              <button type="button" className="ae-btn" onClick={() => { void navigator.clipboard.writeText(row.share_url || ""); setCopied(row.id); }}>
                 {copied === row.id ? t.copied : t.copy_share}
               </button>
             )}
-            {canWrite && row.share_url && <button type="button" onClick={() => void revoke(row.id)}>{t.revoke_share}</button>}
-            {canWrite && <button type="button" onClick={() => void dismiss(row.id)}>{t.dismiss_flag}</button>}
+            {canWrite && row.share_url && <button type="button" className="ae-btn ghost" onClick={() => void revoke(row.id)}>{t.revoke_share}</button>}
+            {canWrite && <button type="button" className="ae-btn ghost" onClick={() => void dismiss(row.id)}>{t.dismiss_flag}</button>}
           </div>
         </article>
       ))}
+      {revoked.length > 0 && (
+        <section>
+          <h2>{t.flags_revoked_title}</h2>
+          <p className="sub">{t.flags_revoked_sub}</p>
+          {revoked.map((row) => (
+            <article className="ae-card" key={row.id}>
+              <div className="dash-meta">
+                <span className="chip">{t.share_revoked}</span>
+                <span className="muted">{row.created_at}</span>
+              </div>
+              <h3>{row.pack ? t.pack_label : row.title}</h3>
+              <p className="why">{row.pack ? t.pack_watermark : row.note}</p>
+            </article>
+          ))}
+        </section>
+      )}
     </article>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import en from "../../i18n/en.json";
 import ar from "../../i18n/ar.json";
+import MarketingFrame from "../../components/MarketingFrame";
 
 const PILOT = process.env.NEXT_PUBLIC_PRICE_PILOT || "AED 1,500/mo";
 const PACK = process.env.NEXT_PUBLIC_PRICE_PACK || "AED 400/project/mo";
@@ -17,10 +18,7 @@ export default function PricingPage() {
   }, []);
   const t = (locale === "ar" ? ar : en) as Record<string, string>;
   return (
-    <article className="mkt-page">
-      <p className="mono-label">{t.nav_pricing}</p>
-      <h1>{t.pricing_h}</h1>
-      <p className="lede">{t.pricing_lede}</p>
+    <MarketingFrame locale={locale} kicker={t.nav_pricing} title={t.pricing_h} lede={t.pricing_lede}>
       <div className="plates">
         <div className="plate rec">
           <p className="mono-label">{t.pilot_rec}</p>
@@ -49,6 +47,6 @@ export default function PricingPage() {
         <p className="lede">{t.assisted_lede}</p>
         <a className="ae-btn ghost" href="/contact">{t.nav_contact}</a>
       </section>
-    </article>
+    </MarketingFrame>
   );
 }
