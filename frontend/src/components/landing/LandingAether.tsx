@@ -76,14 +76,23 @@ export default function LandingAether() {
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
+    // Fade across almost the full hero height so visuals linger into the next section
     offset: ["start start", "end start"],
   });
-  // Longer, ease-out fade — hero lingers then softens into the next section
-  const heroVisualOpacity = useTransform(scrollYProgress, [0, 0.35, 0.7, 0.92], [1, 0.92, 0.45, 0]);
-  const heroVisualY = useTransform(scrollYProgress, [0, 0.92], [0, 72]);
-  const heroVisualBlur = useTransform(scrollYProgress, [0, 0.5, 0.92], [0, 4, 14]);
-  const heroCopyOpacity = useTransform(scrollYProgress, [0, 0.4, 0.75, 0.95], [1, 0.95, 0.4, 0]);
-  const heroCopyY = useTransform(scrollYProgress, [0, 0.95], [0, 36]);
+  // Very long, smooth ease-out — no hard cut; hero softens deep into scroll
+  const heroVisualOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.2, 0.45, 0.7, 0.88, 1],
+    [1, 0.98, 0.82, 0.5, 0.18, 0]
+  );
+  const heroVisualY = useTransform(scrollYProgress, [0, 1], [0, 96]);
+  const heroVisualBlur = useTransform(scrollYProgress, [0, 0.35, 0.7, 1], [0, 2, 8, 18]);
+  const heroCopyOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.25, 0.5, 0.75, 0.95],
+    [1, 0.98, 0.75, 0.35, 0]
+  );
+  const heroCopyY = useTransform(scrollYProgress, [0, 1], [0, 48]);
   const heroFilter = useTransform(heroVisualBlur, (b) => `blur(${b}px)`);
 
   useEffect(() => {
@@ -195,7 +204,7 @@ export default function LandingAether() {
               {t.hero_line_risk} <span className="pigment">{t.hero_line_margin}</span>
             </h1>
             <p className="lede">{t.hero_lede}</p>
-            <div className="ae-actions" style={{ justifyContent: "flex-start" }}>
+            <div className="ae-actions land-hero-actions">
               <Link className="ae-btn" href="/login">{t.login}</Link>
               <Link className="ae-btn ghost" href="/product">{t.nav_product}</Link>
               <Link className="ae-btn ghost" href="/pricing">{t.nav_pricing}</Link>
