@@ -113,5 +113,13 @@
   "ocr_ticket": "Open OCR ticket",
   "ocr_ticket_ok": "OCR ticket opened — text is not invented.",
   "pilot_checklist": "Pilot checklist",
-  "pilot_checklist_sub": "Email SLA, cron, Stripe, optional WhatsApp, forward address. Cron is confirmed by ops."
+  "pilot_checklist_sub": "Email SLA, cron, Stripe, optional WhatsApp, forward address. Cron is confirmed by ops.",
+  "exposure_open_act": "Open Act",
+  "exposure_open_watch": "Open Watch",
+  "exposure_days": "Days flagged",
+  "exposure_margin": "Margin at risk",
+  "exposure_shared": "Shared",
+  "exposure_note": "Estimated exposure from your flagged days and the rate in Settings — not a guarantee.",
+  "set_aed_per_day": "Set AED per delay day",
+  "aed_per_day": "AED per delay day"
 }
