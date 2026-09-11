@@ -27,7 +27,7 @@ async def exposure_strip(session: AsyncSession, tenant_id) -> dict:
     findings = list((await session.execute(select(Finding).where(Finding.tenant_id == tenant_id, Finding.dismissed.is_(False)))).scalars().all())
     act = [f for f in findings if f.severity == Severity.ACT]
     watch = [f for f in findings if f.severity == Severity.WATCH]
-    measured = [days_from_text(f.title, f.why_it_hits_us, f.evidence_snippet) for f in act]
+    measured = [days_from_text(f.title, f.why_it_hits_us, f.evidence_snippet) for f in act + watch]
     measured = [d for d in measured if d is not None]
     days = sum(measured) if measured else None
     rate = tenant.aed_per_delay_day if tenant else None
