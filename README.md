@@ -2,7 +2,7 @@
 
 Morning project-risk briefings for UAE construction SMEs. Email is the SLA. WhatsApp is best-effort. Act cards require an evidence pointer.
 
-**S0–S27 closed** on `main`. Invite gate deferred to S28+.
+**S0–S31** on `main`. Public register is closed in production. Create a pilot Owner with `python -m scripts.create_pilot_owner` — see [docs/S31-publish-ready.md](docs/S31-publish-ready.md).
 
 Theme default: bone studio. Locale: `pb_locale`.
 

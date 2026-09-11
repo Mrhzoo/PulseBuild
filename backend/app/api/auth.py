@@ -8,6 +8,7 @@ from app.api.deps import Principal, get_principal, require_write
 from app.db import get_session
 from app.models.orm import Membership, Role, Tenant, User
 from app.security import create_access_token, hash_password, verify_password
+from app.services.registration import assert_public_register_allowed
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -27,6 +28,7 @@ def _session_payload(user: User, membership: Membership, tenant: Tenant | None) 
 
 @router.post("/register")
 async def register(payload: dict, session: AsyncSession = Depends(get_session)) -> dict:
+    assert_public_register_allowed(payload.get("invite_code"))
     email = payload["email"].lower().strip()
     existing = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if existing:

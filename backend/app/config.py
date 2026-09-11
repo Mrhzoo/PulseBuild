@@ -58,6 +58,7 @@ class Settings(BaseSettings):
 
     auto_run_agents_on_upload: bool = True
     enable_ocr: bool = False
+    pilot_invite_code: str = ""
 
 
 settings = Settings()

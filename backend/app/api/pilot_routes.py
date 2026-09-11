@@ -60,6 +60,7 @@ async def pilot_checklist(principal: Principal = Depends(get_principal), session
             {"id": "forward", "ok": any(p.forward_address for p in projects), "label": "Project forward address"},
             {"id": "https", "ok": https_ok or settings.app_env != "production", "label": "WEB_BASE_URL is https in production"},
             {"id": "seed", "ok": settings.app_env != "production", "label": "Demo seed refused in production"},
+            {"id": "register", "ok": (settings.app_env or "").lower() == "production" or not bool((settings.pilot_invite_code or "").strip()), "label": "Public register default-deny (always closed in production)"},
         ],
         "forwards": [p.forward_address for p in projects if p.forward_address],
     }

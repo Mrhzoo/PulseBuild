@@ -33,6 +33,13 @@ STRIPE_PRICE_PROJECT_ADDON_AED=
 Optional: `ENABLE_WHATSAPP_PUSH`, Meta vars, `ENABLE_OCR`, `ENABLE_LIVE_LLM` (keep false until ready).
 
 Do **not** run `python -m scripts.seed` in production.
+`POST /api/auth/register` is closed in production (403). Create the Owner:
+
+```bash
+python -m scripts.create_pilot_owner --email owner@firm.ae --company "Your Co"
+```
+
+Optional `PILOT_INVITE_CODE` only opens register in **non-production**, and only when the body includes the matching `invite_code`. See [S31-publish-ready.md](S31-publish-ready.md) for **local production rehearsal** (Postmark + cron on a laptop; no public host).
 
 ## 3. API
 
