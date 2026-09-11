@@ -10,7 +10,6 @@ function isLocalHost(): boolean {
   return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 }
 const DEV = process.env.NEXT_PUBLIC_APP_ENV === "development" || (typeof window !== "undefined" && isLocalHost());
-const VIDEO = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4";
 
 export default function LoginPage() {
   const [locale, setLocale] = useState("en");
@@ -44,21 +43,17 @@ export default function LoginPage() {
 
   return (
     <div className="login-stage">
-      <video className="login-video" autoPlay muted loop playsInline>
-        <source src={VIDEO} type="video/mp4" />
-      </video>
-      <div className="login-veil" />
       <form className="login-card" onSubmit={(e) => void onSubmit(e)}>
-        <p className="login-kicker"><a href="/">PulseBuild</a></p>
+        <p className="login-kicker"><a href="/">PulseBuild<span className="pigment">.</span></a></p>
         <h1 className="login-title">{t.login_title}</h1>
         <p className="sub">{t.whatsapp_best_effort}</p>
-        <label>{t.email}</label>
+        <label className="mono-label">{t.email}</label>
         <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="username" />
-        <label>{t.password}</label>
+        <label className="mono-label">{t.password}</label>
         <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required autoComplete="current-password" />
-        <button type="submit">{t.login}</button>
+        <button className="sq fill" type="submit">{t.login}</button>
         {error && <p className="ev">{error}</p>}
-        <p className="muted"><a href="/">{t.nav_home}</a></p>
+        <p className="muted"><a href="/contact">Request access</a> · <a href="/">{t.nav_home}</a></p>
       </form>
     </div>
   );

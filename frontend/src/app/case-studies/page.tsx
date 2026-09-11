@@ -3,11 +3,18 @@
 export default function CasesPage() {
   return (
     <article className="mkt-page">
-      <h1>Case studies</h1>
-      <p className="sub">Illustrative scenarios — not named customers.</p>
-      <section className="card"><h2>Marina delay (example)</h2><p>A look-ahead shows a two-week slip on second-fix. Digest surfaces Act with the programme pointer so the sub can flag the GC the same morning.</p></section>
-      <section className="card"><h2>IPC retention (example)</h2><p>Last certified IPC still unpaid past terms. Cash-flow Watch points at the certificate page instead of a guessed amount.</p></section>
-      <section className="card"><h2>Variation (example)</h2><p>An emailed VO has no signed instruction. Change-order Watch asks for the missing paper before work proceeds.</p></section>
+      <p className="mono-label">Pilot notes</p>
+      <h1>Wedge stories, <span className="pigment">not glossy logos.</span></h1>
+      <p className="lede">No invented quotes. No fake savings. Demo material is labelled as demo.</p>
+      <section className="card">
+        <p className="mono-label">Demo · Marina Fitout</p>
+        <h2>Programme movement on a seed project</h2>
+        <p>Problem: a delay line in a site file with no owner on the cash risk.</p>
+        <p>Uploaded: a text-layer programme note.</p>
+        <p>Digest: Watch card with an evidence pointer. Act only when a dated window is also present.</p>
+        <p>Next human move: confirm whether the crew window moved.</p>
+      </section>
+      <p className="lede">Real pilot conversation: <a href="/contact">Contact</a>.</p>
     </article>
   );
 }
