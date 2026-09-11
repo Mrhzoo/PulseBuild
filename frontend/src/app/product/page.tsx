@@ -1,29 +1,37 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import en from "../../i18n/en.json";
+import ar from "../../i18n/ar.json";
+
 export default function ProductPage() {
+  const [locale, setLocale] = useState("en");
+  useEffect(() => {
+    const read = () => setLocale(localStorage.getItem("pb_locale") || "en");
+    read();
+    const id = window.setInterval(read, 400);
+    return () => window.clearInterval(id);
+  }, []);
+  const t = (locale === "ar" ? ar : en) as Record<string, string>;
   return (
     <article className="mkt-page">
-      <p className="mono-label">Product</p>
-      <h1>A morning briefing, <span className="pigment">not an ERP.</span></h1>
-      <p className="lede">PulseBuild is not BIM, not a chatbot, not a document warehouse. It is Act and Watch on live project files.</p>
-      <h2>Digest anatomy</h2>
-      <div className="deflist">
-        <div><span className="mono-label">ACT</span><span>Needs a human move. Evidence pointer required.</span><span /></div>
-        <div><span className="mono-label">WATCH</span><span>Programme or supplier movement to track.</span><span /></div>
-        <div><span className="mono-label">QUIET</span><span>Quiet projects are a feature.</span><span /></div>
+      <p className="mono-label">{t.nav_product}</p>
+      <h1>{t.product_h}</h1>
+      <p className="lede">{t.product_lede}</p>
+      <div className="ae-grid">
+        <article className="ae-card"><p className="mono-label">{t.section_act}</p><h3>{t.act_def}</h3></article>
+        <article className="ae-card"><p className="mono-label">{t.section_watch}</p><h3>{t.watch_def}</h3></article>
+        <article className="ae-card"><p className="mono-label">SLA</p><h3>{t.sla_def}</h3></article>
       </div>
-      <h2>Ingest</h2>
-      <p className="lede">Upload a programme, last IPC, or variation email. Or forward project mail to the address on the project.</p>
-      <h2>Roles</h2>
+      <h2>{t.how_title}</h2>
       <div className="deflist">
-        <div><span className="mono-label">OWNER</span><span>Billing, invite, run agents, send briefing.</span><span /></div>
-        <div><span className="mono-label">OPS</span><span>Write path without billing admin.</span><span /></div>
-        <div><span className="mono-label">READER</span><span>See digest and flags. Cannot upload.</span><span /></div>
+        <div><span className="mono-label">OWNER</span><span>{t.role_owner}</span><span /></div>
+        <div><span className="mono-label">OPS</span><span>{t.role_ops}</span><span /></div>
+        <div><span className="mono-label">READER</span><span>{t.role_reader}</span><span /></div>
       </div>
-      <p className="mono-label">Email is the SLA. WhatsApp is best-effort.</p>
-      <div className="hero-actions">
-        <a className="sq fill" href="/login">Sign in</a>
-        <a className="sq" href="/pricing">Pricing</a>
+      <div className="ae-actions" style={{ justifyContent: "flex-start", marginTop: 24 }}>
+        <a className="ae-btn" href="/login">{t.login}</a>
+        <a className="ae-btn ghost" href="/pricing">{t.nav_pricing}</a>
       </div>
     </article>
   );

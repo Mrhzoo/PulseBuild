@@ -1,66 +1,54 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import en from "../../i18n/en.json";
+import ar from "../../i18n/ar.json";
+
 const PILOT = process.env.NEXT_PUBLIC_PRICE_PILOT || "AED 1,500/mo";
 const PACK = process.env.NEXT_PUBLIC_PRICE_PACK || "AED 400/project/mo";
 
 export default function PricingPage() {
+  const [locale, setLocale] = useState("en");
+  useEffect(() => {
+    const read = () => setLocale(localStorage.getItem("pb_locale") || "en");
+    read();
+    const id = window.setInterval(read, 400);
+    return () => window.clearInterval(id);
+  }, []);
+  const t = (locale === "ar" ? ar : en) as Record<string, string>;
   return (
     <article className="mkt-page">
-      <p className="mono-label">Pricing · AED · UAE first</p>
-      <h1>Pilot first. Pack when the archive grows.</h1>
-      <p className="lede">Founder-led pilots. Cancel-friendly monthly after pilot proof. No invented annual badges.</p>
+      <p className="mono-label">{t.nav_pricing}</p>
+      <h1>{t.pricing_h}</h1>
+      <p className="lede">{t.pricing_lede}</p>
       <div className="plates">
         <div className="plate rec">
-          <p className="mono-label">Recommended</p>
-          <h2>Pilot</h2>
-          <p className="lede">Best for a single SME running a paid pilot on live projects.</p>
-          <p className="serif" style={{ fontSize: 28 }}>{PILOT}</p>
+          <p className="mono-label">{t.pilot_rec}</p>
+          <h2>{t.pilot_name}</h2>
+          <p className="lede">{t.pilot_lede}</p>
+          <p style={{ fontFamily: "var(--font-display)", fontSize: 32 }}>{PILOT}</p>
           <ul>
-            <li>Morning email briefing (SLA)</li>
-            <li>Act / Watch with evidence gate</li>
-            <li>Upload + forward ingest</li>
-            <li>Flag + proof share</li>
-            <li>Owner / Ops / Reader</li>
-            <li>WhatsApp optional, best-effort</li>
+            <li>{t.channel_promise}</li>
+            <li>{t.act_def}</li>
+            <li>{t.ingest_line}</li>
+            <li>{t.share_proof}</li>
           </ul>
-          <a className="sq fill" href="/contact">Request pilot</a>
+          <a className="ae-btn" href="/contact">{t.request_pilot}</a>
         </div>
         <div className="plate">
-          <p className="mono-label">Add-on</p>
-          <h2>Project pack</h2>
-          <p className="lede">Add capacity when active projects or archives grow.</p>
-          <p className="serif" style={{ fontSize: 28 }}>{PACK}</p>
-          <ul>
-            <li>Extra active project slots</li>
-            <li>Same digest and evidence rules</li>
-            <li>Same tenant isolation</li>
-            <li>Billed monthly in AED</li>
-          </ul>
-          <a className="sq" href="/login">Add pack</a>
+          <p className="mono-label">{t.pack_name}</p>
+          <h2>{t.project_pack}</h2>
+          <p className="lede">{t.pack_lede}</p>
+          <p style={{ fontFamily: "var(--font-display)", fontSize: 32 }}>{PACK}</p>
+          <a className="ae-btn ghost" href="/login">{t.login}</a>
         </div>
       </div>
       <section className="assisted">
-        <p className="mono-label">Assisted ops</p>
-        <h2>Founder-led assisted ops</h2>
-        <p className="lede">Time-capped human help during pilot weeks. Not a self-serve tier. Not a fourth pricing column.</p>
-        <a className="sq" href="/contact">Talk to founder</a>
+        <p className="mono-label">{t.assisted_name}</p>
+        <h2>{t.assisted_h}</h2>
+        <p className="lede">{t.assisted_lede}</p>
+        <a className="ae-btn ghost" href="/contact">{t.nav_contact}</a>
       </section>
-      <table className="compare">
-        <thead><tr><th>Group</th><th>Pilot</th><th>Pack</th></tr></thead>
-        <tbody>
-          <tr><td>Briefing</td><td>Email SLA</td><td>Same</td></tr>
-          <tr><td>Projects</td><td>Pilot quota</td><td>+ slots</td></tr>
-          <tr><td>WhatsApp</td><td>Optional</td><td>Optional</td></tr>
-          <tr><td>Assisted</td><td>By arrangement</td><td>By arrangement</td></tr>
-        </tbody>
-      </table>
-      <h2>FAQ</h2>
-      <div className="deflist">
-        <div><span className="mono-label">BILLING</span><span>Monthly AED after pilot proof. Stripe live when configured.</span><span /></div>
-        <div><span className="mono-label">SLA</span><span>Email at 06:00 Asia/Dubai. WhatsApp is not the SLA.</span><span /></div>
-        <div><span className="mono-label">DATA</span><span>Tenant isolation. Encrypted files at rest.</span><span /></div>
-        <div><span className="mono-label">CANCEL</span><span>Cancel-friendly monthly after the pilot window.</span><span /></div>
-      </div>
     </article>
   );
 }
