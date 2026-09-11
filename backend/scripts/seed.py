@@ -30,6 +30,8 @@ async def seed() -> None:
             country=Country.UAE,
             currency=Currency.AED,
             billing_plan="pilot",
+            digest_timezone="Asia/Dubai",
+            digest_local_time="07:00",
         )
         owner = User(
             email="owner@demo.pulsebuild.local",

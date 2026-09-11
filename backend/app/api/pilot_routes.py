@@ -54,7 +54,7 @@ async def pilot_checklist(principal: Principal = Depends(get_principal), session
         "app_env": settings.app_env,
         "items": [
             {"id": "email", "ok": email_configured(), "label": "Postmark token (morning email SLA)"},
-            {"id": "cron", "ok": None, "label": "Morning cron armed (see docs/S23-production-email.md) — ops confirm"},
+            {"id": "cron", "ok": None, "label": "Digest cron every 15 min (see docs/S32-digest-schedule.md) — ops confirm"},
             {"id": "stripe", "ok": billing_configured(), "label": "Stripe live (BILLING_STUB=false + keys)"},
             {"id": "whatsapp", "ok": bool(settings.enable_whatsapp_push), "label": "WhatsApp optional — best-effort only"},
             {"id": "forward", "ok": any(p.forward_address for p in projects), "label": "Project forward address"},

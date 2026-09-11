@@ -49,10 +49,10 @@ alembic upgrade head
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Morning SLA (Asia/Dubai 06:00 = 02:00 UTC):
+Digest cron (every 15 minutes — each tenant uses their own timezone + HH:MM; see [S32-digest-schedule.md](S32-digest-schedule.md)):
 
 ```
-0 2 * * * cd /opt/pulsebuild/backend && .venv/bin/python -m scripts.send_morning_digests
+*/15 * * * * cd /opt/pulsebuild/backend && .venv/bin/python -m scripts.send_morning_digests
 ```
 
 ## 4. Web

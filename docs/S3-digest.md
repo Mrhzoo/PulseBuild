@@ -14,16 +14,16 @@ The digest is the product. Agents write Findings. S3 ranks them into Act / Watch
 
 Subject: `PulseBuild · {date} · {N} Act items` or `Quiet morning`.
 
-## Nightly
+## Scheduled send
+
+Owner sets timezone + local HH:MM (S32). Cron every 15 minutes:
 
 ```bash
 cd backend && python -m scripts.send_morning_digests
 ```
 
-Cron (06:10 Asia/Dubai):
-
 ```
-10 6 * * * cd /opt/pulsebuild/backend && .venv/bin/python -m scripts.send_morning_digests
+*/15 * * * * cd /opt/pulsebuild/backend && .venv/bin/python -m scripts.send_morning_digests
 ```
 
 ## Env

@@ -10,6 +10,7 @@ from app.api.deps import Principal, get_principal, require_write
 from app.config import settings
 from app.db import get_session
 from app.models.orm import Document, Project, Tenant, User
+from app.digest.schedule import apply_digest_prefs, default_timezone, resolved_time, resolved_timezone
 
 router = APIRouter()
 
@@ -43,7 +44,7 @@ async def get_tenant_settings(principal: Principal = Depends(get_principal), ses
     tenant = await session.get(Tenant, principal.tenant_id)
     if not tenant:
         raise HTTPException(404, "tenant")
-    return {"name": tenant.name, "aed_per_delay_day": tenant.aed_per_delay_day, "currency": tenant.currency.value}
+    return {"name": tenant.name, "aed_per_delay_day": tenant.aed_per_delay_day, "currency": tenant.currency.value, "digest_timezone": resolved_timezone(tenant), "digest_local_time": resolved_time(tenant), "digest_timezone_default": default_timezone(tenant.country)}
 
 
 @router.patch("/settings/tenant")
@@ -57,8 +58,9 @@ async def patch_tenant_settings(payload: dict, principal: Principal = Depends(re
             tenant.aed_per_delay_day = None
         else:
             tenant.aed_per_delay_day = float(raw)
+    apply_digest_prefs(tenant, payload)
     await session.commit()
-    return {"name": tenant.name, "aed_per_delay_day": tenant.aed_per_delay_day}
+    return {"name": tenant.name, "aed_per_delay_day": tenant.aed_per_delay_day, "digest_timezone": resolved_timezone(tenant), "digest_local_time": resolved_time(tenant)}
 
 
 @router.get("/inbound/status")

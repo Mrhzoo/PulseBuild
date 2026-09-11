@@ -22,7 +22,7 @@ class DigestPayload(BaseModel):
     company: str
     projects_scanned: int
     last_data_received: str | None = None
-    channel_promise: str = "Morning briefing by email."
+    channel_promise: str = "Briefing by email at the time you set."
     act: list[DigestCard] = Field(default_factory=list)
     watch: list[DigestCard] = Field(default_factory=list)
     low: list[DigestCard] = Field(default_factory=list)

@@ -69,6 +69,8 @@ class Tenant(Base):
     onboarding_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     data_residency: Mapped[str] = mapped_column(String(40), default="default")
     aed_per_delay_day: Mapped[float | None] = mapped_column(Float, nullable=True)
+    digest_timezone: Mapped[str] = mapped_column(String(64), default="Asia/Dubai")
+    digest_local_time: Mapped[str] = mapped_column(String(5), default="07:00")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     projects: Mapped[list[Project]] = relationship(back_populates="tenant")
     memberships: Mapped[list[Membership]] = relationship(back_populates="tenant")

@@ -50,12 +50,12 @@ curl -sS -o /tmp/reg.json -w "%{http_code}" -X POST http://127.0.0.1:8000/api/au
 # expect 403
 ```
 
-Morning SLA locally (Asia/Dubai 06:00 = 02:00 UTC):
+Briefing cron locally (every 15 min; tenant timezone + HH:MM — not a fixed Dubai 06:00):
 
 ```bash
 cd backend && python -m scripts.send_morning_digests
-# or crontab on this machine only:
-# 0 2 * * * cd /path/backend && .venv/bin/python -m scripts.send_morning_digests
+# crontab on this machine only:
+# */15 * * * * cd /path/backend && .venv/bin/python -m scripts.send_morning_digests
 ```
 
 Inbound Postmark webhook can point at a tunnel **you** control, or wait — email outbound is the SLA. Do not list a public URL as the product.

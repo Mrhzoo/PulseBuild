@@ -21,16 +21,16 @@ def allow_email_stub() -> bool:
 def _copy(locale: str) -> dict[str, str]:
     if locale == "ar":
         return {
-            "promise": "الإحاطة الصباحية عبر البريد.",
-            "quiet": "صباح هادئ. لا بنود إجراء.",
+            "promise": "الإحاطة عبر البريد في الوقت الذي تحدده.",
+            "quiet": "إحاطة هادئة. لا بنود إجراء.",
             "quiet_label": "هادئ",
             "open": "افتح الملخص",
             "scanned": "مشاريع مراجعة",
             "ask_fallback": "لا شيء للتعيين.",
         }
     return {
-        "promise": "Morning briefing by email.",
-        "quiet": "Quiet morning. No Act items.",
+        "promise": "Briefing by email at the time you set.",
+        "quiet": "Quiet briefing. No Act items.",
         "quiet_label": "Quiet",
         "open": "Open digest",
         "scanned": "projects scanned",

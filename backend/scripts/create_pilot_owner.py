@@ -16,6 +16,7 @@ import sys
 from sqlalchemy import select
 
 from app.db import SessionLocal
+from app.digest.schedule import default_timezone
 from app.models.orm import Country, Currency, Membership, Role, Tenant, User
 from app.security import hash_password
 
@@ -49,6 +50,8 @@ async def create_owner(email: str, password: str, company: str, slug: str | None
             country=Country.UAE,
             currency=Currency.AED,
             billing_plan="pilot",
+            digest_timezone=default_timezone(Country.UAE),
+            digest_local_time="07:00",
         )
         owner = User(email=email, full_name=company, hashed_password=hash_password(password))
         session.add_all([tenant, owner])

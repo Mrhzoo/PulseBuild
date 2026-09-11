@@ -9,6 +9,7 @@ from app.db import get_session
 from app.models.orm import Membership, Role, Tenant, User
 from app.security import create_access_token, hash_password, verify_password
 from app.services.registration import assert_public_register_allowed
+from app.digest.schedule import default_timezone
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -34,7 +35,7 @@ async def register(payload: dict, session: AsyncSession = Depends(get_session)) 
     if existing:
         raise HTTPException(409, "email exists")
     slug = payload.get("company_slug") or payload["company_name"].lower().replace(" ", "-")[:80]
-    tenant = Tenant(name=payload["company_name"], slug=slug)
+    tenant = Tenant(name=payload["company_name"], slug=slug, digest_timezone=default_timezone(payload.get("country")), digest_local_time="07:00")
     user = User(email=email, full_name=payload.get("full_name") or email, hashed_password=hash_password(payload["password"]))
     session.add(tenant)
     session.add(user)
