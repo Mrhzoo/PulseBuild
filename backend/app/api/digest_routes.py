@@ -13,6 +13,7 @@ from app.digest.emailer import email_configured, send_digest_email
 from app.digest.recipients import briefing_recipients
 from app.notify.whatsapp import notify_digest, whatsapp_numbers
 from app.services.audit import write_audit
+from app.services.exposure import exposure_strip
 
 router = APIRouter()
 
@@ -26,6 +27,11 @@ async def digest_health() -> dict:
 async def digest_today(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
     payload = await build_digest(session, principal.tenant_id, date.today())
     return payload.model_dump()
+
+
+@router.get("/digest/exposure")
+async def digest_exposure(principal: Principal = Depends(get_principal), session: AsyncSession = Depends(get_session)) -> dict:
+    return await exposure_strip(session, principal.tenant_id)
 
 
 @router.post("/digest/today/build")
