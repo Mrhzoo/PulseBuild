@@ -1,0 +1,92 @@
+/* Adapted from Figma Sites template "Modern, Clean SaaS Company" (Aetherfield). PulseBuild copy only. */
+:root[data-theme="studio"], :root {
+  --ae-sky-top: #c9dff2;
+  --ae-sky-mid: #e7eef6;
+  --ae-sky-bot: #f4f1ea;
+  --ae-ink: #111111;
+  --ae-muted: #5c5c5c;
+  --ae-paper: #ffffff;
+  --ae-sun: #f3e14a;
+  --ae-line: rgba(17,17,17,.12);
+  --ae-radius: 14px;
+  --ae-btn-radius: 4px;
+  --ae-display: "Instrument Serif", "Times New Roman", serif;
+  --ae-sans: "Azeret Mono", ui-sans-serif, system-ui, sans-serif;
+}
+.ae-nav {
+  position: fixed; top: 0; inset-inline: 0; z-index: 40;
+  display: flex; align-items: center; gap: 28px;
+  padding: 18px 32px;
+  background: transparent;
+}
+.ae-nav .wordmark {
+  font-family: var(--ae-display); font-size: 22px; color: var(--ae-ink); text-decoration: none;
+}
+.ae-nav nav { margin-inline-start: auto; display: flex; gap: 22px; }
+.ae-nav nav a {
+  color: var(--ae-ink); text-decoration: none; font-size: 14px; font-family: ui-sans-serif, system-ui, sans-serif;
+}
+.ae-nav .get {
+  font-size: 14px; color: var(--ae-ink); text-decoration: none; font-family: ui-sans-serif, system-ui, sans-serif;
+}
+.ae-hero {
+  min-height: 100vh;
+  padding: 120px 24px 40px;
+  background: linear-gradient(180deg, var(--ae-sky-top) 0%, var(--ae-sky-mid) 46%, var(--ae-sky-bot) 100%);
+  text-align: center;
+}
+.ae-hero h1 {
+  font-family: var(--ae-display);
+  font-weight: 400;
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 1.05;
+  margin: 0 auto 18px;
+  max-width: 16ch;
+  color: var(--ae-ink);
+}
+.ae-hero .lede {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 18px;
+  color: var(--ae-ink);
+  max-width: 36rem;
+  margin: 0 auto 28px;
+}
+.ae-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.ae-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 10px 18px;
+  background: #111; color: #fff; text-decoration: none;
+  border: 1px solid #111; border-radius: var(--ae-btn-radius);
+  font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px;
+}
+.ae-btn.ghost { background: #111; }
+.ae-mock {
+  max-width: 980px; margin: 48px auto 0;
+  background: var(--ae-paper);
+  border: 1px solid #111;
+  border-radius: 22px;
+  padding: 28px;
+  text-align: start;
+}
+.ae-mock h2 { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 22px; margin: 0; color: var(--ae-ink); }
+.ae-mock p { margin: 4px 0 18px; color: var(--ae-muted); font-family: ui-sans-serif, system-ui, sans-serif; }
+.ae-tiles { display: grid; grid-template-columns: 1.1fr 1fr 1.2fr; gap: 12px; }
+.ae-tile {
+  border: 1px solid var(--ae-line);
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 120px;
+  background: #fff;
+}
+.ae-tile .k { font-size: 12px; color: var(--ae-muted); }
+.ae-tile .v { font-family: var(--ae-display); font-size: 36px; margin-top: 18px; }
+.ae-sun { background: var(--ae-sun); }
+.ae-forecast { background: #f6f7f4; display: grid; grid-template-columns: 88px 1fr; gap: 12px; align-items: center; }
+.ae-forecast .pill {
+  display: inline-block; background: var(--ae-sun); color: #111;
+  font-size: 11px; padding: 2px 8px; border-radius: 99px; margin-bottom: 6px;
+}
+@media (max-width: 800px) {
+  .ae-tiles { grid-template-columns: 1fr; }
+  .ae-nav nav { display: none; }
+}
